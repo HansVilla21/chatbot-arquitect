@@ -17,7 +17,7 @@ Antes de empezar, verificar:
 1. **Discovery conversacional, no formulario** — preguntar de forma natural, no como encuesta
 2. **15 minutos maximo** — 3 fases de 5 minutos cada una
 3. **Capturar lo que importa** — diferenciador, objeciones, handoffs. No perder tiempo en nice-to-haves
-4. **Output estructurado** — todo se guarda como JSON en `inputs/{cliente}/discovery.json`
+4. **Output estructurado** — todo se guarda como JSON en `clients/{cliente}/discovery.json`
 
 ## Proceso
 
@@ -77,7 +77,7 @@ Si falta algo critico, preguntar. Si es nice-to-have, anotar como pendiente.
 
 ## Output Esperado
 
-Guardar en `inputs/{cliente}/discovery.json` con esta estructura:
+Guardar en `clients/{cliente}/discovery.json` con esta estructura:
 
 ```json
 {

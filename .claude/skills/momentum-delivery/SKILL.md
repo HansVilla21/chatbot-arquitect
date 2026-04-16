@@ -7,7 +7,7 @@ description: Genera documentos de entrega para el cliente sin jerga tecnica, o p
 
 ## Evaluacion Inicial
 
-- **Contexto:** Lee `outputs/architectures/{cliente}.md` y `inputs/{cliente}/discovery.json`
+- **Contexto:** Lee `clients/{cliente}/architecture.md` y `clients/{cliente}/discovery.json`
 - **Modo:** Entrega (post-build) o Propuesta (pre-build)?
 - **Objetivo:** Documento que el cliente entienda sin ser tecnico
 
@@ -45,7 +45,7 @@ Usar template `assets/template-propuesta.md`. Generar documento con:
 
 ### Guardar
 
-Output: `outputs/deliveries/{cliente}-entrega.md` o `outputs/deliveries/{cliente}-propuesta.md`
+Output: `clients/{cliente}/entrega.md` o `clients/{cliente}/propuesta.md`
 
 ## Edge Cases
 

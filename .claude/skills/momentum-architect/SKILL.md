@@ -8,7 +8,7 @@ description: Diseña la arquitectura modular de un chatbot dado el discovery de 
 ## Evaluacion Inicial
 
 Antes de diseñar:
-- **Lee** `inputs/{cliente}/discovery.json` — si no existe, sugerir `/momentum-discovery` primero
+- **Lee** `clients/{cliente}/discovery.json` — si no existe, sugerir `/momentum-discovery` primero
 - **Lee** `memory/metodologia-core.md` — reglas NO NEGOCIABLES
 - **Lee** `memory/client-patterns.md` — patrones de los 7 clientes reales
 - **Consulta** `references/stack-matrix.md` — matriz de stack por tipo de negocio
@@ -101,7 +101,7 @@ Opciones (elegir las que aplican):
 
 ## Output
 
-Guardar en `outputs/architectures/{cliente}.md` con:
+Guardar en `clients/{cliente}/architecture.md` con:
 
 ```markdown
 # Arquitectura: {cliente}

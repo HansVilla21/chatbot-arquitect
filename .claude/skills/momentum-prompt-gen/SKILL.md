@@ -8,8 +8,8 @@ description: Genera prompts optimizados para cada componente del chatbot siguien
 ## Evaluacion Inicial
 
 Antes de generar:
-- **Lee** `outputs/architectures/{cliente}.md` — si no existe, sugerir `/momentum-architect` primero
-- **Lee** `inputs/{cliente}/discovery.json` — datos del discovery
+- **Lee** `clients/{cliente}/architecture.md` — si no existe, sugerir `/momentum-architect` primero
+- **Lee** `clients/{cliente}/discovery.json` — datos del discovery
 - **Lee** `memory/metodologia-core.md` — reglas de prompting
 - **Consulta** los prompts reales en `workflows/prompts-referencia/` como referencia de calidad
 - **Consulta** los templates en `assets/` para la estructura base
@@ -40,7 +40,7 @@ Segun la arquitectura, estos son TODOS los prompts posibles. No todos aplican a 
 
 ### Paso 1: Revisar la Arquitectura
 
-Leer `outputs/architectures/{cliente}.md` y listar que componentes necesita este chatbot:
+Leer `clients/{cliente}/architecture.md` y listar que componentes necesita este chatbot:
 
 - [ ] Agente principal (SIEMPRE)
 - [ ] Router/Classifier LLM (SIEMPRE si hay 2+ agentes)
@@ -92,7 +92,7 @@ Para cada agente especializado o de objeciones:
 
 ### Paso 6: Guardar y Reportar
 
-Guardar en `outputs/prompts/{cliente}/`:
+Guardar en `clients/{cliente}/prompts/`:
 - `router-classifier.md`
 - `agente-principal.md`
 - `agente-{nombre}.md` (cada especializado)

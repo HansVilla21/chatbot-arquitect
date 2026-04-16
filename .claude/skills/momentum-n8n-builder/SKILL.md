@@ -7,8 +7,8 @@ description: Genera la configuracion especifica de los nodos del workflow n8n pa
 
 ## Evaluacion Inicial
 
-- **Lee** `outputs/architectures/{cliente}.md` — arquitectura definida
-- **Lee** `outputs/prompts/{cliente}/` — prompts generados
+- **Lee** `clients/{cliente}/architecture.md` — arquitectura definida
+- **Lee** `clients/{cliente}/prompts/` — prompts generados
 - **Consulta** `references/workflow-patterns.md` — estructura del template base
 - **Consulta** `references/code-snippets.md` — snippets reutilizables
 - **Consulta** `workflows/chatbot-manychat-analysis.md` — analisis del template real
@@ -150,7 +150,7 @@ HTTP Request - sendFlow:
 
 ## Output
 
-Guardar en `outputs/workflows/{cliente}/workflow-config.md` con:
+Guardar en `clients/{cliente}/workflow/workflow-config.md` con:
 
 ```markdown
 # Configuracion del Workflow: {cliente}
