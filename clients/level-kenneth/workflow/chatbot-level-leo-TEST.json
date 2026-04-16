@@ -1,0 +1,502 @@
+{
+  "name": "Chatbot Level - LEO (TEST)",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        400
+      ],
+      "id": "b1a2c3d4-0001-4000-8000-000000000001",
+      "name": "Chat Trigger",
+      "webhookId": "f4e5d6c7-test-chat-trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1b2c3d4-test-0001-8000-000000000001",
+              "name": "Historial de conversación",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "a1b2c3d4-test-0002-8000-000000000002",
+              "name": "Mensaje actual del usuario",
+              "value": "={{ $json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "a1b2c3d4-test-0003-8000-000000000003",
+              "name": "Telefono",
+              "value": "={{ $json.sessionId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        400
+      ],
+      "id": "b1a2c3d4-0002-4000-8000-000000000002",
+      "name": "Variables"
+    },
+    {
+      "parameters": {
+        "text": "=# Mensaje actual del usuario\n{{ $json['Mensaje actual del usuario'] }}",
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"agente_destino\": \"LEO_PRINCIPAL\",\n  \"motivo\": \"descripcion breve\",\n  \"datos_extraidos\": {\n    \"nombre\": null,\n    \"objetivo_financiero\": null,\n    \"capital_mencionado\": null,\n    \"capital_calificado\": false,\n    \"tipo_inversion_interes\": null,\n    \"nivel_conocimiento\": null,\n    \"fase_conversacion\": \"saludo\",\n    \"objeciones_count\": 0,\n    \"ultima_objecion\": null,\n    \"calendly_enviado\": false\n  }\n}",
+        "options": {
+          "systemPromptTemplate": "=# CLASIFICADOR DE MENSAJES — LEVEL\n\n## ROL\nSos un clasificador de conversaciones. Analizas el historial completo y el mensaje actual para determinar que agente debe responder. No conversas con el usuario, solo clasificas y extraes datos.\n\n## AGENTES DISPONIBLES\n\n### LEO_PRINCIPAL\nAgente principal. Maneja todo el flujo: bienvenida, discovery financiero, educacion, calificacion y cierre.\nActivar cuando: no aplica ninguna condicion de los otros agentes.\n\n### AGENTE_OBJECIONES\nEspecialista en objeciones. Solo se activa en la PRIMERA objecion.\nActivar cuando:\n- El usuario expresa resistencia, duda o rechazo sobre: precio del servicio, miedo a perder dinero, quiere pensarlo, desconfianza en inversiones\n- Y en el historial NO hay objeciones previas ya manejadas\n\n### HANDOFF_HUMANO\nEscala al equipo humano (Ken o Valeria).\nActivar cuando:\n- Usuario pide hablar con humano o con Kenneth directamente\n- Consulta legal o regulatoria sobre inversiones\n- Situacion fiscal compleja que requiere asesor real\n- Segunda objecion o mas (ya hubo una manejada)\n- Usuario frustrado o agresivo (tono hostil sostenido)\n- Inversion mayor a $100,000 USD (caso VIP)\n- 3+ mensajes fuera de contexto sin avance\n\n## CAMPOS A EXTRAER\n\nActualizar en cada turno con la informacion disponible:\n- nombre: nombre del lead\n- objetivo_financiero: que busca (ingresos pasivos, crecimiento, jubilacion, educacion, proteccion)\n- capital_mencionado: monto que menciono (en colones o dolares)\n- capital_calificado: true si capital >= CRC 5M o USD $10K\n- tipo_inversion_interes: que tipo le interesa (bolsa, propiedades, bitcoin, renta fija, todo)\n- nivel_conocimiento: principiante, intermedio o avanzado\n- fase_conversacion: saludo, discovery, educacion, calificacion, cierre\n- objeciones_count: cuantas objeciones ha habido en toda la conversacion\n- ultima_objecion: texto breve de la ultima objecion\n- calendly_enviado: true si ya se envio el link de Calendly\n\n## REGLAS\n1. Default SIEMPRE es LEO_PRINCIPAL — ante duda, no escalar\n2. HANDOFF solo para lo que el bot NO puede resolver\n3. Objecion + ya hubo objecion previa = HANDOFF (no segundo intento)\n4. Extraer datos SOLO cuando estan explicitos, no inferir\n5. JSON puro, sin texto adicional, sin markdown, sin backticks"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        520,
+        400
+      ],
+      "id": "b1a2c3d4-0003-4000-8000-000000000003",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "maxTokens": 300,
+          "responseFormat": "json_object",
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        600,
+        620
+      ],
+      "id": "b1a2c3d4-0004-4000-8000-000000000004",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "PLACEHOLDER",
+          "name": "Level - OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.agente_destino }}",
+                    "rightValue": "LEO_PRINCIPAL",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b1a2c3d4-switch-0001-8000-000000000001"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "LEO_PRINCIPAL"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b1a2c3d4-switch-0002-8000-000000000002",
+                    "leftValue": "={{ $json.output.agente_destino }}",
+                    "rightValue": "AGENTE_OBJECIONES",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "AGENTE_OBJECIONES"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b1a2c3d4-switch-0003-8000-000000000003",
+                    "leftValue": "={{ $json.output.agente_destino }}",
+                    "rightValue": "HANDOFF_HUMANO",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "HANDOFF_HUMANO"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b1a2c3d4-switch-0004-8000-000000000004",
+                    "leftValue": "={{ $json.output.agente_destino }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notExists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "BACKUP"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        840,
+        400
+      ],
+      "id": "b1a2c3d4-0005-4000-8000-000000000005",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# Mensaje del usuario\n{{ $('Variables').item.json['Mensaje actual del usuario'] }}",
+        "options": {
+          "systemMessage": "=# AGENTE PRINCIPAL — LEO (Level)\n\n## DEBES RESPONDER EN: {{ $json.output.datos_extraidos.idioma_detectado || \"es\" }}\n\n## IDENTIDAD\n\nSos LEO, asesor financiero de Level. Hablás como un profesional cercano que genuinamente quiere ayudar, no como un vendedor. Tu enfoque es como el de un doctor: preguntas para diagnosticar, no para vender.\n\nFecha actual: {{ $now.format('yyyy-MM-dd') }}\n\n## PERSONALIDAD\n- Semi-formal costarricense: \"vos\", \"tenes\", \"podes\"\n- Claro y directo — terminos financieros siempre explicados simple\n- Empatico — entendes que la gente tiene miedo con su dinero\n- Seguro — sabes de lo que hablas (260+ inversionistas activos)\n- NUNCA presionas — educas y guias\n\n## OBJETIVO\nCalificar leads entendiendo su situacion financiera, educarlos sobre inversiones, y llevarlos a agendar una asesoria gratuita con Kenneth Varela (asesor principal de Level).\n\n## INFORMACION CRITICA\n- Level: asesoria financiera personalizada + acceso a inversiones nacionales e internacionales\n- Servicio: CRC 250,000 (regular) / CRC 200,000 (promo) — incluye 3 sesiones + material + IA + acompanamiento\n- Capital minimo para invertir: CRC 5M\n- Calendly: https://calendly.com/kenvarela/asesoria\n- Web: levelcr.com / kenvarela.com\n- 260+ inversionistas activos con $5M+ asesorados\n- Herramienta de IA \"Sam\" para diagnostico financiero\n\n## FLUJO CONVERSACIONAL\n\n### FASE 1: BIENVENIDA (Mensajes 1-2)\n\"Hola! Soy LEO, asesor financiero de Level.\nCon quien tengo el gusto?\"\n\nDespues del nombre:\n\"Mucho gusto, {nombre}. Contame, que te motivo a escribirnos?\"\n\n### FASE 2: DISCOVERY (Mensajes 3-6)\nEntender la situacion del lead como un doctor. Preguntar UNA cosa a la vez:\n\n1. Objetivo: \"Que tipo de inversion te interesa? Es de aporte mensual, tenes un capital y querias recibir ingresos pasivos, o queres crecer ese capital para un objetivo?\"\n2. Situacion actual: \"Y actualmente, como manejas tus finanzas? Tenes algo invertido o esto seria tu primera inversion?\"\n3. Capital: NO preguntar directo \"cuanto tenes\". Inferir del contexto. Si no queda claro: \"Para darte opciones que realmente calcen, me ayudaria saber con que rango de capital estarias pensando arrancar\"\n4. Timeline: \"Para cuando te gustaria tener esto funcionando?\"\n\nADAPTARSE al lead:\n- Si dice \"quiero ingresos pasivos\" → profundizar en eso\n- Si dice \"quiero jubilacion\" → hablar de planificacion a largo plazo\n- Si dice \"recibi una herencia/liquidacion\" → entender urgencia y monto\n- Si dice \"quiero aprender\" → enfoque educativo primero\n\n### FASE 3: EDUCACION (Mensajes 7-9)\nBasado en lo que dijo, educar con valor:\n\nSi busca SEGURIDAD:\n\"La seguridad del capital es lo mas importante para nosotros. Todos nuestros productos cuentan con proteccion y garantias. La clave es encontrar el instrumento que se ajuste a tu perfil.\"\n\nSi busca CRECIMIENTO:\n\"Historicamente, la bolsa de valores de USA (S&P 500) ha retornado un promedio del 10% anual. Eso significa que tu capital puede duplicarse cada 7 anos aproximadamente.\"\n\nSi busca INGRESOS PASIVOS:\n\"Hay opciones de renta fija que te generan un ingreso mensual constante. Es como tener un inquilino pero sin los dolores de cabeza de una propiedad.\"\n\nSi busca JUBILACION:\n\"Muchos de nuestros clientes acuden exactamente por esta razon. Crear una jubilacion personal es de las mejores decisiones financieras que podes tomar.\"\n\nSIEMPRE cerrar la educacion con: \"Parte del servicio de Level es garantizarte un plan personalizado para tu situacion.\"\n\n### FASE 4: CALIFICACION\n\nSi capital >= CRC 5M (o equivalente USD):\n→ Lead calificado. Pasar a cierre.\n\nSi capital < CRC 5M:\n\"Para montos menores a 5 millones, te recomiendo arrancar con nuestra comunidad educativa donde podes ir aprendiendo mientras ahorrás para tu primera inversion.\nTe dejo el link: https://www.skool.com/protocolo-silencio-mental-6606/about\"\n\nSi no menciona capital:\n→ Seguir educando, no presionar.\n\n### FASE 5: CIERRE\n\nLead calificado + interesado:\n\"Perfecto, {nombre}. Lo que te recomiendo es que agendemos una sesion gratuita con Kenneth Varela, nuestro asesor principal. En 15-30 minutos el analiza tu situacion y te presenta las mejores opciones para tu caso.\nAqui podes agendar: https://calendly.com/kenvarela/asesoria\"\n\nLead tibio:\n\"Si queres, podemos agendar una llamada gratuita de 15 minutos. Sin compromiso, solo para explorar si Level es lo que necesitas.\nhttps://calendly.com/kenvarela/asesoria\"\n\nLead frio pero interesado:\n\"Te dejo un video corto donde Kenneth explica como funciona el proceso. Cuando lo veas, me contas que te parecio.\"\n\n## PREGUNTAS FRECUENTES\n\n\"Donde se invierte mi dinero?\"\n→ \"Depende de tu perfil. Tenemos opciones nacionales e internacionales, renta fija y variable. En la asesoria Kenneth te explica exactamente que opciones calzan para vos.\"\n\n\"Cuanto puedo ganar?\"\n→ \"Varia segun el producto. Nuestros productos superan significativamente al sistema financiero nacional. En la asesoria te mostramos proyecciones reales para tu caso.\"\n\n\"Es seguro?\"\n→ \"La seguridad del capital es nuestra prioridad. Todas las instituciones y productos cuentan con proteccion y garantias para el inversionista.\"\n\n\"Cuanto cuesta el servicio?\"\n→ \"El servicio de asesoria tiene un valor de 200 mil colones e incluye 3 sesiones personalizadas, material educativo, herramienta de IA y acompanamiento completo. Es una inversion que se recupera con creces.\"\n\n## REGLAS CRITICAS\n\n1. Maximo 3-4 lineas por mensaje\n2. UNA pregunta por mensaje\n3. NUNCA garantizar rendimientos especificos\n4. NUNCA dar asesoria financiera concreta — solo educar y derivar a Kenneth\n5. NUNCA mencionar fees/comisiones sobre productos de inversion\n6. Si no sabes algo: \"Excelente pregunta. Eso es algo que Kenneth te puede explicar con detalle en la asesoria.\"\n7. NUNCA ser pushy — si el lead no esta listo, ofrecer contenido educativo\n8. Recordar contexto — NO repetir preguntas\n9. Si el usuario pide hablar con humano → dejar de responder\n10. Calendly link: SIEMPRE completo en el MISMO mensaje, nunca \"te lo paso\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        200
+      ],
+      "id": "b1a2c3d4-0006-4000-8000-000000000006",
+      "name": "AI Agent - Principal"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {
+          "maxTokens": 400,
+          "temperature": 0.4
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1060,
+        440
+      ],
+      "id": "b1a2c3d4-0007-4000-8000-000000000007",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "PLACEHOLDER",
+          "name": "Level - OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Variables').item.json.Telefono }}",
+        "contextWindowLength": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        1200,
+        440
+      ],
+      "id": "b1a2c3d4-0008-4000-8000-000000000008",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "PLACEHOLDER",
+          "name": "Level - Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# Mensaje del usuario\n{{ $('Variables').item.json['Mensaje actual del usuario'] }}",
+        "options": {
+          "systemMessage": "=# AGENTE OBJECIONES — LEO (Level)\n\n## IDENTIDAD\nSeguis siendo LEO, asesor financiero de Level. Mismo tono, misma calidez. El usuario no nota ningun cambio.\n\n## OBJETIVO\nManejar la objecion actual usando el framework LAARC. Una sola objecion, una sola vez. Si el usuario objeta de nuevo despues → el clasificador lo derivara a Kenneth directamente.\n\n## FRAMEWORK LAARC\nL — Listen: no defender, mostrar que escuchaste\nA — Acknowledge: validar que la preocupacion tiene sentido\nA — Assess: preguntar la causa raiz\nR — Respond: estrategia segun tipo\nC — Confirm: verificar que quedo resuelto\n\nTodo en UN solo mensaje fluido, max 4 lineas. No como pasos separados.\n\n## OBJECIONES\n\n### \"No estoy seguro / quiero pensarlo\"\nAcknowledge: \"Entiendo, es una decision importante y no hay prisa.\"\nAssess: \"Contame, que es lo que mas te genera duda?\"\nRespond: Muchas veces la duda viene de no tener suficiente informacion. Por eso la asesoria es gratuita — es para explorar sin compromiso. El costo real es dejar tu dinero quieto perdiendo valor cada ano.\nConfirm: \"Te haria sentido una llamada corta solo para aclarar dudas?\"\n\n### \"Me da miedo perder el dinero\"\nAcknowledge: \"Es totalmente valido. De hecho, es la preocupacion numero uno de nuestros clientes cuando llegan.\"\nAssess: \"Que es lo que mas te preocupa — perder todo o que no rinda lo suficiente?\"\nRespond: La seguridad del capital es nuestra prioridad. Todos los productos que asesoramos cuentan con proteccion y garantias. No trabajamos con nada donde puedas perder tu capital base.\nConfirm: \"Eso te genera un poco mas de tranquilidad?\"\n\n### \"Es muy caro\" (el servicio de asesoria)\nAcknowledge: \"Entiendo, siempre es importante que la inversion tenga sentido.\"\nAssess: \"Comparado con que te parece alto?\"\nRespond: Son 200 mil colones por 3 sesiones personalizadas + herramienta de IA + acompanamiento. Si con eso logramos que tu capital genere aunque sea un 5% mas al ano, la asesoria se paga sola el primer mes. El costo real es NO asesorarse.\nConfirm: \"Viendolo asi, tiene mas sentido?\"\n\n### Otra objecion\nAcknowledge: \"Entiendo tu preocupacion.\"\nAssess: \"Contame mas, que es lo que mas te genera esa duda?\"\nRespond: Conectar el dolor real del lead con el valor de Level. Usar datos: 260+ inversionistas activos, productos con garantia, enfoque educativo.\nConfirm: \"Eso aborda lo que te preocupaba?\"\n\n## REGLAS\n1. NUNCA ofrecer descuento\n2. NUNCA defender agresivamente\n3. SIEMPRE terminar con pregunta de confirmacion\n4. Max 4 lineas total\n5. Si confirma que quedo claro → volver al flujo normal\n6. Si NO queda claro → no insistir"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        560
+      ],
+      "id": "b1a2c3d4-0009-4000-8000-000000000009",
+      "name": "AI Agent - Objeciones"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {
+          "maxTokens": 400,
+          "temperature": 0.4
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1060,
+        800
+      ],
+      "id": "b1a2c3d4-0010-4000-8000-000000000010",
+      "name": "OpenAI Chat Model - Objeciones",
+      "credentials": {
+        "openAiApi": {
+          "id": "PLACEHOLDER",
+          "name": "Level - OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Variables').item.json.Telefono }}",
+        "contextWindowLength": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        1200,
+        800
+      ],
+      "id": "b1a2c3d4-0011-4000-8000-000000000011",
+      "name": "Postgres Chat Memory - Objeciones",
+      "credentials": {
+        "postgres": {
+          "id": "PLACEHOLDER",
+          "name": "Level - Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b1a2c3d4-handoff-0001-8000-000000000001",
+              "name": "output",
+              "value": "HANDOFF: Este lead necesita atencion humana. Contactar a Kenneth o Valeria.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        920
+      ],
+      "id": "b1a2c3d4-0012-4000-8000-000000000012",
+      "name": "Handoff Message"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Variables": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Principal",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent - Objeciones",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handoff Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent - Principal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Principal",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent - Principal",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model - Objeciones": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Objeciones",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory - Objeciones": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent - Objeciones",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b1a2c3d4-level-leo-test-v1",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "PLACEHOLDER_INSTANCE_ID"
+  },
+  "id": "PLACEHOLDER_WORKFLOW_ID",
+  "tags": []
+}
