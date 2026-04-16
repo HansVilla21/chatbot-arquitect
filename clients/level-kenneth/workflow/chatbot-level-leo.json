@@ -2112,6 +2112,87 @@
           "name": "Level - Airtable"
         }
       }
+    },
+    {
+      "parameters": {
+        "text": "=Mensaje del usuario: {{ $('ID y Mensaje').item.json.Mensaje }}",
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"tipo_mensaje\": \"consulta_valida\",\n  \"debe_continuar_bot\": true,\n  \"razon\": \"explicacion breve\",\n  \"accion_recomendada\": \"continuar_workflow\"\n}",
+        "options": {
+          "systemPromptTemplate": "# CLASIFICADOR INICIAL — LEVEL\n\n## ROL\nEres el primer filtro de mensajes para Level. Tu funcion es:\n1. Analizar el primer mensaje de un contacto nuevo\n2. Determinar si es una consulta valida sobre inversiones o asesoria financiera\n3. Detectar spam, ofertas de servicios, o mensajes de conversaciones viejas\n4. Decidir si el chatbot debe continuar o ignorar\n\nNO eres conversacional. Solo produces JSON.\n\n## CLASIFICACION\n\n### consulta_valida (debe_continuar_bot: true)\n- Saludos: \"Hola\", \"Buenos dias\", \"Buenas\", \"Info\"\n- Preguntas sobre inversiones, finanzas, asesoria\n- Interes en Level, en Kenneth, en el servicio\n- Preguntas sobre rentabilidad, donde invertir, como empezar\n- Mencion de capital para invertir\n- Cualquier mensaje que indique interes en servicios financieros\n\n### oferta_spam (debe_continuar_bot: false)\n- Ofrece servicios (marketing, diseno, desarrollo, etc.)\n- Solicita colaboracion o partnership\n- Ofrece productos no solicitados\n- Mensajes promocionales no relacionados a inversiones\n\n### cliente_existente (debe_continuar_bot: false)\n- Menciona que ya es cliente de Level\n- Pregunta por su inversion actual, su portafolio, sus rendimientos\n- Menciona sesiones previas con Kenneth\n- Pregunta operativa de cliente activo\n\n### no_relacionado (debe_continuar_bot: false)\n- Mensaje de conversacion vieja no relacionada a Level\n- Respuesta a algo que no tiene que ver con inversiones\n- Mensajes sin contexto que parecen continuacion de otro tema\n- Spam generico\n\n## PRIORIDAD\n1. Ofrece servicio → oferta_spam\n2. Ya es cliente / menciona sesion previa → cliente_existente\n3. Pregunta sobre inversiones/finanzas → consulta_valida\n4. Saludo sin contexto → consulta_valida (DEFAULT)\n5. No relacionado → no_relacionado\n\n## REGLAS\n- JSON puro, sin markdown, sin backticks\n- Saludos simples → SIEMPRE consulta_valida\n- Ante duda → consulta_valida (es mejor atender de mas que ignorar)"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        2896,
+        1552
+      ],
+      "id": "f7a3b1c2-4d5e-4f6a-8b9c-0d1e2f3a4b5c",
+      "name": "Filtro Inicial"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "maxTokens": 300,
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2976,
+        1776
+      ],
+      "id": "e8b4c2d3-5e6f-4a7b-9c0d-1e2f3a4b5c6d",
+      "name": "OpenAI Chat Model - Filtro",
+      "credentials": {
+        "openAiApi": {
+          "id": "PLACEHOLDER",
+          "name": "Level - OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a1b2c3d4-ffff-4000-8000-111111111111",
+              "leftValue": "={{ $json.output.debe_continuar_bot }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3150,
+        1552
+      ],
+      "id": "d9c5d3e4-6f7a-4b8c-0d1e-2f3a4b5c6d7e",
+      "name": "Nuevo Mensaje?"
     }
   ],
   "pinData": {},
@@ -2212,7 +2293,7 @@
         ],
         [
           {
-            "node": "Crear Lead",
+            "node": "Filtro Inicial",
             "type": "main",
             "index": 0
           }
@@ -2816,6 +2897,39 @@
           {
             "node": "Update record - Apagar Calendly",
             "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtro Inicial": {
+      "main": [
+        [
+          {
+            "node": "Nuevo Mensaje?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nuevo Mensaje?": {
+      "main": [
+        [
+          {
+            "node": "Crear Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model - Filtro": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Filtro Inicial",
+            "type": "ai_languageModel",
             "index": 0
           }
         ]
