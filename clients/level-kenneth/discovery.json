@@ -1,0 +1,130 @@
+{
+  "cliente": "Level",
+  "fecha_discovery": "2026-04-16",
+  "negocio": {
+    "descripcion": "Servicio de asesoria financiera e inversion personalizada. Ayuda a clientes a proteger capital, generar ingresos pasivos y tomar decisiones de inversion claras.",
+    "producto_servicio": "Asesoria de inversion personalizada: diagnostico financiero con IA (herramienta Sam), estrategia personalizada, acceso a instrumentos nacionales e internacionales, material grabado, acompanamiento en implementacion.",
+    "cliente_ideal": "Profesionales (medicos, empresarios, ejecutivos, independientes) de 30-55 anos, ingresos medios-altos, capital disponible CRC 5M-100M+. Personas que ya ahorran o tienen inversiones pero no las han optimizado. Buscan seguridad, claridad y acompanamiento de confianza. Miedo a perder dinero o tomar malas decisiones.",
+    "ticket_promedio": "CRC 250,000 (regular) / CRC 200,000 (promocional) por el servicio de asesoria. Fee sobre productos de inversion NO se comparte con el cliente.",
+    "rango_precios": "CRC 200,000 - CRC 250,000 por servicio de asesoria (3 sesiones + material + IA + acompanamiento). La inversion real del cliente en productos va desde CRC 5M en adelante.",
+    "ciclo_venta": "Variable. Algunos cierran en 1-2 conversaciones, otros necesitan 4 seguimientos con estructura PSP (Problema, Solucion, Situacion, Presentacion). Leads frios pueden tomar semanas.",
+    "diferenciador": "Asesoria personalizada (no generica), acceso a inversiones nacionales E internacionales en un solo lugar, acompanamiento completo desde estrategia hasta ejecucion, enfoque educativo (el cliente entiende que hace con su dinero), herramienta de IA (Sam) para diagnostico financiero, 260+ inversionistas activos con $5M+ asesorados.",
+    "volumen_consultas": "No especificado. Leads llegan por YouTube, pagina web (kenvarela.com, levelcr.com), Google, y referidos."
+  },
+  "ventas": {
+    "origen_leads": [
+      "YouTube (videos de Kenneth)",
+      "Pagina web kenvarela.com (boton WhatsApp)",
+      "Pagina web levelcr.com",
+      "Google organico (blogs)",
+      "Referidos",
+      "Charlas presenciales",
+      "Redes sociales (reels)"
+    ],
+    "preguntas_frecuentes": [
+      {
+        "pregunta": "Donde se invierte mi dinero exactamente?",
+        "respuesta": "Depende de su situacion y perfil. Contamos con opciones de renta fija y variable, nacionales e internacionales. Lo importante es identificar que instrumento se ajusta mejor a su objetivo."
+      },
+      {
+        "pregunta": "Que tan seguro es invertir con Level?",
+        "respuesta": "La seguridad del capital es el punto mas importante. Todas las instituciones y productos cuentan con proteccion, garantia al capital y seguros para el inversionista."
+      },
+      {
+        "pregunta": "Cuanto puedo ganar o que rentabilidad puedo esperar?",
+        "respuesta": "Varia segun el producto. En promedio, nuestros productos superan significativamente al sistema financiero nacional. Le ayudamos con calculadora para proyectar rendimientos."
+      },
+      {
+        "pregunta": "Necesito mucho dinero para empezar?",
+        "respuesta": "La pregunta correcta es: cuanto necesita para su objetivo? Primero definimos su meta, luego ajustamos el monto correcto."
+      },
+      {
+        "pregunta": "Que diferencia hay entre invertir en CR y en USA?",
+        "respuesta": "En CR predomina renta fija y propiedades, con mayor estabilidad. En USA encontramos renta variable con rendimientos historicamente mas atractivos a largo plazo. En Level combinamos ambos segun perfil."
+      }
+    ],
+    "objeciones_top3": [
+      {
+        "objecion": "No estoy seguro / quiero pensarlo",
+        "causa": "Falta de urgencia y claridad sobre beneficios",
+        "manejo": "Educacion financiera + caso de uso concreto + costo de NO actuar"
+      },
+      {
+        "objecion": "Me da miedo perder el dinero",
+        "causa": "Componente emocional + desconocimiento",
+        "manejo": "Explicar proteccion y garantia del capital. Productos con seguro."
+      },
+      {
+        "objecion": "Es muy caro",
+        "causa": "No perciben el valor del acompanamiento",
+        "manejo": "Comparar costo de NO asesorarse vs retorno de hacerlo bien. CRC 200K vs potencial de multiplicar capital."
+      }
+    ],
+    "trigger_compra": "Entender que tienen un objetivo financiero alcanzable + ver que Level tiene la ruta para lograrlo + confianza en Kenneth/equipo. La llamada gratuita es el cierre principal.",
+    "metodo_cierre": "Llamada de asesoria gratuita via Calendly. Algunos cierran directo por chat sin llamada si el bot educa bien.",
+    "proceso_seguimiento": "4 seguimientos con estructura PSP: 1) Problema (dolor financiero), 2) Solucion (que ofrece Level), 3) Situacion actual (donde esta el lead), 4) Presentacion de Level. Seguimientos con VALOR (PDFs, videos, info educativa), NUNCA mensajes pushy tipo 'ya pensaste en adquirir Level?'"
+  },
+  "tecnico": {
+    "canal": "WhatsApp (YCloud cuando este listo, ManyChat como backup)",
+    "handoff_persona": "Ken Varela (asesor principal) + Valeria (setter/seguimiento)",
+    "handoff_contacto": "WhatsApp de Level (numero por definir) + CRM Notion",
+    "handoff_metodo": "Mover lead a estado handoff en Notion con comentario/etiqueta. Valeria monitorea chats pero NO interviene en prospeccion — solo toma reuniones agendadas.",
+    "horario_atencion": "Lunes a sabado, 6:30 am - 7:30 pm",
+    "fuera_horario": "Bot brinda info educativa basica + puede agendar via Calendly. Mensaje: 'Con mucho gusto le atenderemos el siguiente dia habil en horario de 6:30 am.'",
+    "crm_actual": "Notion. Estados: Lead → Seguimiento → Frio/Tibio/Caliente → Llamada Agendada → Level (pago) → Olvidado/Descartado. CRM esta desactualizado, necesita depuracion.",
+    "sistema_citas": "Calendly: https://calendly.com/kenvarela/asesoria"
+  },
+  "bot": {
+    "nombre": "LEO",
+    "tono": "Semi-formal en prospeccion y educacion. Casual en seguimientos. Claro, directo, empatico. Terminos financieros siempre explicados de forma simple.",
+    "identidad": "no_revelado",
+    "idiomas": ["es", "en"]
+  },
+  "calificacion": {
+    "criterios_lead_bueno": [
+      "Capital disponible para inversion CRC 5M+",
+      "Interes real en invertir o mejorar finanzas personales",
+      "Dispuesto a agendar una asesoria",
+      "Quiere explorar nuevas herramientas, educacion financiera"
+    ],
+    "criterios_descalificacion": [
+      "Sin capital disponible (no tiene nada para invertir)",
+      "Busca prestamos o creditos (no es el servicio de Level)",
+      "Solo quiere info gratis sin intencion de avanzar (despues de multiples seguimientos)"
+    ],
+    "metodo_asignacion_vendedor": "Ken Varela es el asesor principal. Valeria hace seguimiento. No hay round-robin — todo va a Ken o Valeria."
+  },
+  "contenido": {
+    "material_educativo": [
+      "Comparativa de inversiones (Banco vs Propiedad vs S&P 500 vs Bitcoin) — HTML interactivo",
+      "Presentacion 'Finanzas personales + inversiones + IA = GameOver' — PDF",
+      "Videos de YouTube de Kenneth",
+      "Material grabado de asesorias (Loom)",
+      "Blog posts en kenvarela.com",
+      "Comunidad Skool (para leads frios): https://www.skool.com/protocolo-silencio-mental-6606/about"
+    ],
+    "links_importantes": [
+      "Calendly asesoria: https://calendly.com/kenvarela/asesoria",
+      "Web Level: levelcr.com",
+      "Web Kenneth: kenvarela.com",
+      "Email tech: tech@levelcr.com"
+    ],
+    "documentos_referencia": [
+      "Pitch_Chatbot_Level_LEO.docx — perfil completo del cliente y negocio",
+      "Comparativa_Inversiones_Level.html — material educativo de charlas",
+      "meeting-transcript.md — transcripcion reunion Hans + Kenneth (abril 2026)"
+    ]
+  },
+  "portafolio_productos": {
+    "nacional": [
+      "Sapotal Beach Club (via Partner Royal Sterling Group)",
+      "Transcomer — Puesto Bolsa de Comercio (nacional e internacional)"
+    ],
+    "internacional": [
+      "Dominion Capital Strategy",
+      "Acciones internacionales con eToro",
+      "Criptomonedas — Bitcoin via Binance, Coinbase o Ledger"
+    ]
+  },
+  "notas": "Kenneth quiere que el bot sea capaz de vender sin necesidad de llamada. El enfoque es como un doctor: preguntar para diagnosticar, no para vender. El bot debe adaptarse al interes del cliente (propiedades, bolsa, Bitcoin, jubilacion, etc.). Valeria post-bot solo toma reuniones agendadas y monitorea — la prospeccion queda 100% automatizada. El CRM en Notion necesita depuracion. La comparativa de inversiones se usa en llamadas, el bot NO la envia directamente. Estan migrando leads de un WhatsApp operativo a uno limpio. Kenneth tambien esta usando Claude Code para otro proyecto (cotizaciones/presentaciones para prospectos)."
+}
