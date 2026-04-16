@@ -21,6 +21,19 @@ Lecciones aprendidas de proyectos reales. Se agrega aqui cada vez que se descubr
 - Links de propiedades = experiencia positiva si se presentan bien
 - El bot debe EDUCAR el proceso (usuarios no saben como funciona el sitio web)
 
+## Del Template Base (chatbot-manychat.json) — Abril 2026
+
+- **Message batching con Redis** — Push al llegar, wait 1 min, get all, verificar si es ultimo. Resuelve el problema de usuarios que envian una idea en 3 mensajes separados.
+- **Doble Information Extractor** — El primero filtra conversaciones viejas (no interferir con chats pre-existentes del cliente). El segundo es el router/classifier real. Dos capas de filtrado.
+- **Handoff = apagar chatbot por lead** — En vez de solo dejar de responder, se actualiza Airtable con "Chatbot Activado = Apagado" para ese lead especifico. Asi el bot no responde nunca mas a ese lead hasta que se re-encienda.
+- **Backup route en el Switch** — Si el Information Extractor retorna output vacio/null, va al agente principal como fallback. Previene que el workflow se rompa.
+- **Formateador como LLM (no Code Node)** — Divide la respuesta en bloques de max 3 lineas, separa bullets pegados (• item1 • item2 → cada uno en su linea). Es un prompt reutilizable para cualquier chatbot.
+- **Patron ManyChat API** — Enviar mensajes requiere 2 HTTP requests: setCustomField (asigna texto a variable) + sendFlow (activa el flujo que envia). Se itera con Loop + Wait entre cada bloque de mensaje.
+- **Modelo gpt-4.1-mini** — Version mas reciente que gpt-4o-mini para extractors y agente principal. Temperature 0.1 para classifiers, 0.4 para agente conversacional.
+- **El Code Node para formatear historial** — Limpia el output de Postgres: quita headers de markdown, prefija con "Usuario:" / "Bot:", corta en "# Datos recopilados hasta el momento".
+- **El template se duplica y modifica** — Hans trabaja con un template base que duplica por cliente. Lo que cambia: prompts del Information Extractor (router), prompts del agente(s), schema del Information Extractor, tools del agente, y cantidad de agentes en el Switch.
+- **El prompt del agente principal de Jaco tiene ~6,500 chars** — Excede el limite recomendado de 5,000 pero funciona porque usa gpt-4.1-mini (modelo mas capaz que gpt-4o-mini).
+
 ## De Casos Legales (Advertencias)
 
 - **Air Canada:** Bot prometio descuento por duelo que no existia → lawsuit. LECCION: el bot NUNCA hace compromisos vinculantes.

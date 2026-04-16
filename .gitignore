@@ -3,6 +3,19 @@
 .env.*
 !.env.example
 
+# Data de clientes — NUNCA en git (informacion sensible)
+# El proyecto es publico, pero cada cliente tiene su propia carpeta local
+clients/*
+!clients/.template/
+!clients/.template/**
+!clients/.gitkeep
+
+# Workflows reales con datos de clientes (mantener solo template y analisis)
+workflows/chatbot-manychat.json
+workflows/chatbot-manychat-input-example.json
+workflows/Chatbot-DR-CARLOS.json
+workflows/Chatbot-JIMENA-MATEO.json
+
 # Claude Code
 CLAUDE.local.md
 

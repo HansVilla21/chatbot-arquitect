@@ -6,13 +6,17 @@ Extraido de 7 proyectos documentados en `knowledge/02_CASOS_CLIENTES_COMPLETOS.m
 
 ## Tabla de Referencia Rapida
 
-| Cliente | Tipo | Arquitectura | Modelo | Agentes | Canal |
-|---------|------|-------------|--------|---------|-------|
-| Jaco Dream Rentals | Villas de lujo | Agente unico + RAG | GPT-4o-mini | 1 + classifier + formatter | WhatsApp + IG |
-| El Canal | Real estate | Multi-agente modular | GPT-4o | 2 + classifier | WhatsApp (Evolution) |
-| SmartCheck | Inspecciones vehiculares | Agente + classifier | GPT-4o | 1 + classifier | WhatsApp (Evolution) |
-| Dr. Carlos | Clinica medica | Multi-agente | GPT-4o | 2 + objeciones + classifier | Instagram (ManyChat) |
-| Grandit | Microcreditos | Agente unico ultra-simple | GPT-4o-mini | 1 | WhatsApp |
+| Cliente | Tipo | Agentes | Router | Tools | Post-Processing | Canal |
+|---------|------|---------|--------|-------|----------------|-------|
+| Jaco Dream Rentals | Villas de lujo | 1 (Liliana) | LLM (spam/handoff + datos villa) | Supabase RAG | Filtro inicial | ManyChat |
+| El Canal | Real estate | 3 (Eva + Inventario + Agendamiento) | LLM (BANT + 10 campos) | Google Sheets | Detector descalificacion + vendedores | ManyChat |
+| Dr. Carlos | Clinica medica | 2 (Dr. Carlos + Objeciones LAARC) | LLM (scoring 0-8 + 3 niveles) | Ninguno | Deteccion Calendly/wa.me + Discord | ManyChat |
+| SmartCheck | Inspecciones vehiculares | 1 + classifier | LLM | Ninguno | - | WhatsApp (Evolution) |
+| Grandit | Microcreditos | 1 (sin router) | No tiene | Ninguno | - | WhatsApp |
+| Level (LEO) | Asesoria inversiones | 2 modos (reactivo+proactivo) | LLM | Ninguno | - | WhatsApp (YCloud) |
+
+**Modelo para todos los workflows reales analizados:** gpt-4.1-mini (temp 0.1 router, temp 0.4 agentes)
+**Modelo formateador:** gpt-4o-mini (universal, no cambia)
 | Level (LEO) | Asesoria inversiones | Bot reactivo + proactivo | GPT-4o | 2 modos | WhatsApp (YCloud) |
 | 97 Display | Marketing gimnasios | Agente unico | GPT-4o | 1 | Chat |
 
