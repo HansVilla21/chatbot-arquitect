@@ -9,7 +9,7 @@ Asesoria financiera / inversiones. Kenneth Varela es el asesor principal.
 
 - [x] **1. Docs del cliente** — Cargar archivos en `docs/`
 - [x] **2. Discovery** — `discovery.json` generado desde docs + reunion
-- [ ] **3. Arquitectura** — Correr `/momentum-architect` → genera `architecture.md`
+- [x] **3. Arquitectura** — `architecture.md` generado
 - [ ] **4. Prompts** — Correr `/momentum-prompt-gen` → genera archivos en `prompts/`
 - [ ] **5. Workflow** — Correr `/momentum-n8n-builder` → genera `workflow/workflow-config.md`
 - [ ] **6. Entrega** — Correr `/momentum-delivery` → genera `entrega.md`
