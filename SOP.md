@@ -207,7 +207,16 @@ Memory: Postgres Chat Memory | context window 15
 Formateador: gpt-4o-mini
 ```
 
-**Output:** `clients/{cliente}/workflow/workflow-config.md`
+**Outputs:**
+- `clients/{cliente}/workflow/chatbot-{cliente}.json` — JSON importable en n8n (produccion)
+- `clients/{cliente}/workflow/chatbot-{cliente}-TEST.json` — Version simplificada para chat interno de n8n
+- `clients/{cliente}/workflow/workflow-config.md` — Guia de configuracion + checklist
+
+### Version TEST (para probar con chat interno de n8n):
+Version slim del workflow (~12 nodos) que usa Chat Trigger en vez de Webhook. Sin Redis, sin Airtable, sin ManyChat, sin formateador. Mismos prompts y logica de routing. Para probar la conversacion antes de conectar todo.
+
+### Si el MCP de n8n esta conectado:
+Se puede deployar el workflow directo a la instancia con `n8n_create_workflow`, modificar nodos con `n8n_update_partial_workflow`, y testear con `n8n_test_workflow`.
 
 ---
 
@@ -238,10 +247,12 @@ Generar documento para el cliente SIN jerga tecnica.
 - [ ] Paso 3: discovery.json generado
 - [ ] Paso 4: architecture.md generado
 - [ ] Paso 5: Prompts generados en prompts/
-- [ ] Paso 6: workflow-config.md generado
+- [ ] Paso 6: JSON de workflow generado + version TEST
+- [ ] Paso 6b: workflow-config.md generado (guia de configuracion)
 - [ ] Paso 7: entrega.md generado
-- [ ] Template n8n duplicado y configurado
-- [ ] Testeado con 5+ conversaciones simuladas
+- [ ] JSON importado en n8n y credenciales configuradas
+- [ ] Testeado con version TEST (chat interno de n8n)
+- [ ] Testeado con 5+ conversaciones simuladas en produccion
 - [ ] Cliente aprueba documento de entrega
 
 ---

@@ -60,8 +60,10 @@ Meter en `clients/{cliente}/docs/` todo lo que el cliente me pasa:
 
 ### Paso 6: Workflow n8n
 `/momentum-n8n-builder`
-- Guia nodo-por-nodo de que cambiar en el template
-- Output: `clients/{cliente}/workflow/workflow-config.md`
+- Genera JSON importable del workflow n8n + version TEST para chat interno
+- Genera guia nodo-por-nodo de configuracion
+- Output: `clients/{cliente}/workflow/chatbot-{cliente}.json` + `workflow-config.md`
+- Si el MCP de n8n esta conectado: puede deployar directo a la instancia
 
 ### Paso 7: Entrega
 `/momentum-delivery`
@@ -88,6 +90,27 @@ Meter en `clients/{cliente}/docs/` todo lo que el cliente me pasa:
 |-------|----------|
 | `@n8n-analyzer` | Analiza workflows JSON importados en `workflows/` |
 | `@prompt-reviewer` | Revisa prompts contra la metodologia |
+
+### Skills de n8n (globales — czlonkowski/n8n-skills)
+
+| Skill | Que hace |
+|-------|----------|
+| `n8n-workflow-patterns` | 6 patrones arquitectonicos probados para n8n |
+| `n8n-expression-syntax` | Sintaxis correcta de expresiones {{ }} |
+| `n8n-node-configuration` | Configuracion de nodos por operacion |
+| `n8n-code-javascript` | JavaScript en Code Nodes ($input, $json, $helpers) |
+| `n8n-validation-expert` | Interpretar y corregir errores de validacion |
+| `n8n-mcp-tools-expert` | Guia para usar las tools del MCP de n8n |
+
+### MCP: n8n-mcp (czlonkowski/n8n-mcp)
+
+Cuando esta conectado (N8N_URL + N8N_API_KEY en .env), permite:
+- Crear/modificar/eliminar workflows en n8n directo desde Claude Code
+- Validar configuracion de nodos y workflows
+- Buscar entre 1,505 nodos y 2,709 templates
+- Testear workflows (trigger webhook/chat)
+- Auditar seguridad de la instancia
+- Manejar credenciales
 
 ---
 
