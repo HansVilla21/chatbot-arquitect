@@ -1,6 +1,6 @@
 ---
 name: momentum-prompt-gen
-description: Genera prompts optimizados para cada agente del chatbot siguiendo la metodologia Momentum AI. Usa cuando necesitas crear prompts para agente principal, classifier, agentes especializados, agente de objeciones LAARC, o cuando el usuario dice "generar prompts", "crear prompt", "escribir prompt", "prompt para el agente".
+description: Genera prompts optimizados para cada componente del chatbot siguiendo la metodologia Momentum AI. Usa cuando necesitas crear prompts para agente principal, information extractor (router/classifier), agentes especializados, agente de objeciones LAARC, filtro inicial, formateador de mensajes, o detector de descalificacion. Tambien cuando el usuario dice "generar prompts", "crear prompt", "escribir prompt", "prompt para el agente".
 ---
 
 # Momentum Prompt Generator — Generacion de Prompts Optimizados
@@ -10,98 +10,130 @@ description: Genera prompts optimizados para cada agente del chatbot siguiendo l
 Antes de generar:
 - **Lee** `outputs/architectures/{cliente}.md` — si no existe, sugerir `/momentum-architect` primero
 - **Lee** `inputs/{cliente}/discovery.json` — datos del discovery
-- **Lee** `memory/metodologia-core.md` — reglas de prompting (limites chars, formato, tono)
-- **Consulta** los templates en `assets/` segun el tipo de agente
+- **Lee** `memory/metodologia-core.md` — reglas de prompting
+- **Consulta** los prompts reales en `workflows/prompts-referencia/` como referencia de calidad
+- **Consulta** los templates en `assets/` para la estructura base
 
 ## Principios Core
 
-1. **Cada prompt DEBE ser <5k chars** (principal) o <2k chars (especializado) — SIEMPRE reportar conteo
-2. **Framework segun tipo de agente** — CO-STAR para principal, TIDD-EC para classifier, RTF para especialistas
-3. **Copiable directo a n8n** — sin variables sin resolver, sin placeholders, valores reales
-4. **Una regla anti-repeticion** — arriba del prompt, una sola vez
+1. **Copiable directo a n8n** — el prompt sale listo para pegar en el nodo del template. Cero placeholders sin resolver.
+2. **SIEMPRE reportar conteo de caracteres** de cada prompt generado
+3. **Usar los prompts reales como referencia** — no inventar patrones, seguir lo que ya funciona en produccion
+4. **El Information Extractor (router) es lo MAS CRITICO** — dedicar el mayor esfuerzo ahi
+
+## Componentes a Generar
+
+Segun la arquitectura, estos son TODOS los prompts posibles. No todos aplican a cada chatbot:
+
+| Componente | Template | Nodo n8n | Modelo | Chars |
+|-----------|----------|----------|--------|-------|
+| Agente principal | `assets/template-principal.md` | AI Agent | gpt-4.1-mini (temp 0.4, 400 tokens) | 3,000-5,000 |
+| Router/Classifier | `assets/template-classifier-llm.md` | Information Extractor | gpt-4.1-mini (temp 0.1, 300 tokens) | 1,500-3,500 |
+| Classifier Code Node | `assets/template-classifier-code.js` | Code Node | N/A | N/A |
+| Especialista | `assets/template-especialista.md` | AI Agent | gpt-4.1-mini (temp 0.4, 400 tokens) | 800-1,500 |
+| Objeciones LAARC | `assets/template-objeciones.md` | AI Agent | gpt-4.1-mini (temp 0.4, 400 tokens) | 1,000-2,000 |
+| Filtro inicial | `assets/template-filtro-inicial.md` | Information Extractor | gpt-4.1-mini (temp 0.1, 300 tokens) | 2,000-4,000 |
+| Formateador | `assets/template-formateador.md` | Basic LLM Chain | gpt-4o-mini | ~8,000 (reutilizable) |
+| Detector descalificacion | `assets/template-detector-descalificacion.md` | Information Extractor | gpt-4.1-mini (temp 0.1, 400 tokens) | 500-1,500 |
 
 ## Proceso
 
-### Paso 1: Identificar Agentes a Generar
+### Paso 1: Revisar la Arquitectura
 
-Segun la arquitectura, listar cada agente que necesita prompt:
-- [ ] Agente principal
-- [ ] Classifier (Code Node o LLM)
-- [ ] Agente(s) especializado(s)
-- [ ] Agente de objeciones (si aplica)
-- [ ] Response formatter (Code Node — JavaScript, no prompt)
+Leer `outputs/architectures/{cliente}.md` y listar que componentes necesita este chatbot:
 
-### Paso 2: Seleccionar Framework por Agente
+- [ ] Agente principal (SIEMPRE)
+- [ ] Router/Classifier LLM (SIEMPRE si hay 2+ agentes)
+- [ ] Filtro inicial (SOLO si el cliente tenia conversaciones previas en el canal)
+- [ ] Agente(s) especializado(s) (segun arquitectura)
+- [ ] Agente objeciones LAARC (si ciclo de venta largo o ticket alto)
+- [ ] Formateador (SIEMPRE — usar template-formateador.md sin modificar)
+- [ ] Detector descalificacion (SOLO si hay criterios de descalificacion claros)
 
-| Tipo de Agente | Framework | Template | Chars Target |
-|---------------|-----------|----------|-------------|
-| Principal | CO-STAR | `assets/template-principal.md` | 3,000-5,000 |
-| Classifier LLM | TIDD-EC | `assets/template-classifier-llm.md` | 1,500-3,000 |
-| Classifier Code Node | JavaScript | `assets/template-classifier-code.js` | N/A |
-| Especializado | RTF | `assets/template-especialista.md` | 800-1,500 |
-| Objeciones LAARC | Custom | `assets/template-objeciones.md` | 1,000-2,000 |
+### Paso 2: Generar el Router/Classifier PRIMERO
 
-Leer el framework correspondiente en `references/` para entender como aplicarlo:
-- `references/co-star-framework.md` — para agente principal
-- `references/tidd-ec-framework.md` — para classifier y guardrails
-- `references/prompt-rules.md` — reglas universales
+Este es el nodo mas critico. Si rutea mal, todo falla.
 
-### Paso 3: Generar Cada Prompt
+1. Leer `assets/template-classifier-llm.md`
+2. Consultar prompts reales similares en `workflows/prompts-referencia/`:
+   - Si es real estate → ver `el-canal/clasificador-router.md`
+   - Si es clinica/salud → ver `dr-carlos/router-classifier.md`
+   - Si es villas/alquiler → ver `information-extractor-router.md` (Jaco)
+3. Definir:
+   - Destinos del switch (max 3-4 + backup)
+   - Campos a extraer (adaptar al negocio)
+   - Condiciones de handoff
+   - Reglas de prioridad
+4. El output schema DEBE usar `agente_destino` como campo principal
+5. Contar caracteres
 
-Para cada agente:
+### Paso 3: Generar el Agente Principal
 
-1. Leer el template correspondiente de `assets/`
-2. Rellenar con datos del discovery y la arquitectura
-3. Verificar que cumple las reglas de `references/prompt-rules.md`
-4. Contar caracteres — si excede el limite, recortar sin perder funcionalidad
-5. Verificar formato (sin bold, sin bullets, max 3-4 lineas por mensaje en ejemplos)
+1. Leer `assets/template-principal.md`
+2. Consultar agente real similar en `workflows/prompts-referencia/`
+3. Rellenar TODAS las variables con datos reales del discovery
+4. Incluir: identidad, objetivo, info critica, flujo conversacional, FAQs, reglas
+5. Si tiene tools (RAG, Google Sheets) → incluir instrucciones de uso
+6. Contar caracteres — si excede 5,000, recortar
 
-### Paso 4: Generar Code Nodes
+### Paso 4: Generar Agentes Adicionales
 
-Para classifier Code Node y response formatter, generar JavaScript funcional basado en los patrones de `knowledge/04_PATRONES_TECNICOS_N8N.md`.
+Para cada agente especializado o de objeciones:
+1. Leer template correspondiente
+2. Mantenerlo CORTO — max 1,500 chars
+3. UN solo proposito por agente
+4. Contar caracteres
 
-### Paso 5: Guardar y Reportar
+### Paso 5: Generar Componentes Auxiliares
 
-Guardar cada prompt en `outputs/prompts/{cliente}/`:
+- **Filtro inicial:** Solo si aplica. Copiar template y adaptar categorias.
+- **Formateador:** Copiar `assets/template-formateador.md` SIN MODIFICAR — es universal.
+- **Detector descalificacion:** Solo si aplica. Adaptar tipos de descalificacion.
+
+### Paso 6: Guardar y Reportar
+
+Guardar en `outputs/prompts/{cliente}/`:
+- `router-classifier.md`
 - `agente-principal.md`
-- `classifier.md` (o `classifier.js` si Code Node)
-- `agente-{nombre}.md` (por cada especializado)
+- `agente-{nombre}.md` (cada especializado)
 - `agente-objeciones.md` (si aplica)
-- `response-formatter.js`
+- `filtro-inicial.md` (si aplica)
+- `formateador.md` (copia sin modificar)
+- `detector-descalificacion.md` (si aplica)
 
-Reportar tabla resumen:
+**Tabla resumen OBLIGATORIA:**
 
 ```
-| Agente | Tipo | Framework | Chars | Modelo |
-|--------|------|-----------|-------|--------|
-| [nombre] | Principal | CO-STAR | 4,200 | GPT-4o |
-| [nombre] | Classifier | TIDD-EC | 2,100 | GPT-4o-mini |
+| Componente | Nodo n8n | Modelo | Temp | Tokens | Chars |
+|-----------|----------|--------|------|--------|-------|
+| Router | Information Extractor | gpt-4.1-mini | 0.1 | 300 | X,XXX |
+| Principal | AI Agent | gpt-4.1-mini | 0.4 | 400 | X,XXX |
 | ...
 ```
 
 ## Edge Cases
 
-- **Prompt excede limite:** Buscar redundancias, eliminar edge cases "por si acaso", consolidar instrucciones
-- **Negocio multiidioma:** Agregar deteccion de idioma en classifier, agente principal responde en el idioma detectado
+- **Prompt excede limite:** Buscar redundancias, eliminar edge cases "por si acaso"
+- **Multiidioma:** Agregar `idioma_detectado` al router, agente responde en el idioma detectado
 - **Sin objeciones definidas:** Usar las 4 genericas: precio, timing, product fit, desconfianza
-- **Tono no costarricense:** Adaptar el template de tono. No forzar "vos" si el cliente es de otro pais
+- **Negocio ultra-simple (1 CTA):** Agente unico sin router, enviar formulario/link inmediatamente
 
 ## Errores Comunes
 
-- **Problema:** Prompt con instrucciones repetidas 3-4 veces
-  **Solucion:** Cada regla UNA sola vez. Anti-repeticion en las primeras 500 chars.
+- **Problema:** Instrucciones repetidas 3-4 veces
+  **Solucion:** Cada regla UNA sola vez.
 
-- **Problema:** Variables sin resolver ({{ nombre }}, [EMPRESA])
-  **Solucion:** Todo debe estar resuelto con datos reales del discovery. Cero placeholders.
+- **Problema:** Placeholders sin resolver ({{ }}, [EMPRESA])
+  **Solucion:** TODO resuelto con datos reales. Cero placeholders.
 
-- **Problema:** Ejemplos con datos ficticios que el modelo generaliza
-  **Solucion:** Usar datos reales del cliente o no poner ejemplos con datos especificos.
+- **Problema:** "Te voy a pasar X" sin dar X en el mismo mensaje
+  **Solucion:** En n8n cada agente responde directamente. Links/contactos EN EL MISMO mensaje.
 
-- **Problema:** Prompt dice "te voy a pasar X" sin dar X en el mismo mensaje
-  **Solucion:** En n8n cada agente responde directamente. Si va a dar un link/contacto, darlo EN EL MISMO mensaje.
+- **Problema:** Router con campo `agente` pero Switch lee `agente_destino`
+  **Solucion:** SIEMPRE usar `agente_destino` en el schema. Verificar que el Switch lo lee correctamente.
 
 ## Skills Relacionados
 
-- `/momentum-architect` — paso anterior (define que agentes necesitan prompts)
+- `/momentum-architect` — define que agentes necesitan prompts
 - `/momentum-prompt-optimizer` — para mejorar prompts existentes
-- `/momentum-n8n-builder` — siguiente paso (usa los prompts en el workflow)
+- `/momentum-n8n-builder` — siguiente paso (configura el workflow con los prompts)

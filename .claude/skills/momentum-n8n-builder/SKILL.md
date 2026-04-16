@@ -1,105 +1,191 @@
 ---
 name: momentum-n8n-builder
-description: Genera la estructura de un workflow de n8n para un chatbot, incluyendo nodos, conexiones, configuracion, y code snippets. Usa cuando necesitas diseñar el flujo de n8n, configurar triggers, classifiers, agentes, formatters, notificaciones, o cuando el usuario dice "workflow n8n", "crear flujo", "armar el workflow", "nodos de n8n".
+description: Genera la configuracion especifica de los nodos del workflow n8n para un chatbot, basado en el template base que se duplica por cliente. Usa cuando necesitas configurar el workflow, conectar agentes, ajustar el Switch, configurar tools, o cuando el usuario dice "workflow n8n", "configurar nodos", "armar el workflow".
 ---
 
-# Momentum N8N Builder — Estructura de Workflow
+# Momentum N8N Builder — Configuracion del Workflow
 
 ## Evaluacion Inicial
 
 - **Lee** `outputs/architectures/{cliente}.md` — arquitectura definida
 - **Lee** `outputs/prompts/{cliente}/` — prompts generados
-- **Consulta** `references/workflow-patterns.md` — patrones de nodos
+- **Consulta** `references/workflow-patterns.md` — estructura del template base
 - **Consulta** `references/code-snippets.md` — snippets reutilizables
+- **Consulta** `workflows/chatbot-manychat-analysis.md` — analisis del template real
 
-## Principios Core
+## Principio Fundamental
 
-1. **Seguir la estructura universal** — Trigger → Classifier → Switch → Agents → Formatter → Response → DB
-2. **Code Nodes para logica deterministica** — classifier por keywords, formatter, notificaciones, conversiones
-3. **AI Agent Nodes para conversacion** — solo donde se necesita LLM
-4. **Cada nodo con proposito claro** — si no sabes por que esta, no lo pongas
+**El template base de n8n YA EXISTE.** Este skill NO genera un workflow desde cero. Define exactamente QUE NODOS MODIFICAR en el template duplicado y CON QUE VALORES.
 
-## Proceso
+## Lo que NO Cambias (estructura fija del template)
 
-### Paso 1: Definir Nodos del Workflow
+Estos nodos se duplican tal cual, solo ajustando credenciales:
 
-Basado en la arquitectura, listar cada nodo necesario:
+- Webhook
+- REINICIAR (Redis delete + Postgres delete + Airtable delete + ManyChat send)
+- Buscar Lead → Existe? → Crear Lead / GET Lead
+- Redis push → Wait → Redis get → Es ultimo? → Juntar
+- Conversation (Postgres) → Code (formatear) → Unificacion de Variables
+- Redis cleanup (post-agente)
+- Formateador (Basic LLM Chain) → Split Out → Loop → ManyChat send
 
-**Nodos obligatorios:**
-1. **Trigger** — Webhook (Evolution), Webhook (ManyChat), o trigger nativo (YCloud)
-2. **Message Classifier** — Code Node o AI Agent segun arquitectura
-3. **Switch/Router** — Basado en output del classifier
-4. **AI Agent(s)** — Uno por cada agente definido en arquitectura
-5. **Response Formatter** — Code Node que limpia formato
-6. **Canal Response** — Envia respuesta al canal
-7. **Save State** — PostgreSQL/Supabase o Google Sheets
+## Lo que SI Cambias por Cliente
 
-**Nodos opcionales:**
-8. **Discord Notification** — String detection condicional
-9. **Round-Robin** — Asignacion de vendedores
-10. **Currency Converter** — Si maneja colones/dolares
+### 1. Airtable (credenciales + tablas)
 
-### Paso 2: Configurar Cada Nodo
-
-Para cada nodo, especificar:
-- **Tipo de nodo** en n8n
-- **Configuracion clave** (model, temperature, max_tokens, etc.)
-- **Input esperado** — que recibe del nodo anterior
-- **Output esperado** — que envia al nodo siguiente
-- **Codigo** (si es Code Node) — de `references/code-snippets.md`
-
-### Paso 3: Definir Conexiones
-
-Diagrama de conexiones entre nodos:
-```
-Trigger → Classifier → Switch
-  Switch → Agent Principal (default)
-  Switch → Agent Especialista 1
-  Switch → Agent Especialista 2
-Agent * → Formatter → Response → Save State
-Formatter → (conditional) Discord Notification
-```
-
-### Paso 4: Configuracion de AI Agents
-
-Para cada AI Agent node:
 ```yaml
-Model: OpenAI Chat Model
-  Model Name: gpt-4o / gpt-4o-mini
-  Temperature: 0.3-0.5
-  Max Tokens: 500-1000
-Memory: Window Buffer Memory
-  Context Window: 10
-System Message: [prompt del agente — de outputs/prompts/{cliente}/]
-Tools: [segun arquitectura]
+Nodos a configurar:
+  - Search records1 (ON/OFF): base + tabla del cliente
+  - Buscar Lead: base + tabla + campo de busqueda (ID Manychat o remoteJid)
+  - Crear Lead: base + tabla + campos a crear
+  - GET Lead: base + tabla
+  - Update Timestamp: base + tabla (si aplica)
 ```
 
-### Paso 5: Generar Documento
+### 2. Information Extractor — Router (EL MAS IMPORTANTE)
 
-Guardar en `outputs/workflows/{cliente}/workflow-spec.md` con:
-- Lista de nodos con configuracion
-- Diagrama de conexiones
-- Code snippets para Code Nodes
-- Configuracion de AI Agents
-- Variables de entorno necesarias
-- Instrucciones de setup en n8n
+```yaml
+Nodo: Information Extractor
+Config:
+  text: "# Historial...\n{{ historial }}\n\n# Mensaje actual...\n{{ mensaje }}"
+  schemaType: manual
+  inputSchema: [pegar output schema del prompt generado]
+  systemPromptTemplate: [pegar system prompt del router generado]
+  
+Sub-nodo LLM:
+  model: gpt-4.1-mini
+  temperature: 0.1
+  maxTokens: 300-400
+  responseFormat: json_object
+```
 
-## Edge Cases
+### 3. Switch (ajustar rutas segun agentes)
 
-- **Sin workflows de referencia:** Generar solo la especificacion textual, no JSON
-- **Multi-canal:** Workflows separados por canal, comparten agentes via sub-workflows
-- **Follow-up automations:** Workflow SEPARADO del bot principal
+```yaml
+Nodo: Switch1
+Rutas (segun arquitectura):
+  Output 0: $json.output.agente_destino == "AGENTE_PRINCIPAL" → AI Agent Principal
+  Output 1: $json.output.agente_destino == "[AGENTE_2]" → AI Agent Especialista
+  Output 2: $json.output.agente_destino == "HANDOFF_HUMANO" → [Discord / Airtable apagar]
+  Output 3: $json.output.agente_destino == "" (notExists) → AI Agent Principal (BACKUP)
 
-## Errores Comunes
+CRITICO: El BACKUP siempre va al principal. Previene que el workflow se rompa si el router devuelve vacio.
+```
 
-- **Problema:** Poner toda la logica en un solo AI Agent sin classifier
-  **Solucion:** Siempre separar: classifier → routing → agentes especializados
+### 4. AI Agents (1 por cada agente de la arquitectura)
 
-- **Problema:** Formatter como AI Agent en vez de Code Node
-  **Solucion:** Formateo es determinista — Code Node siempre
+```yaml
+Por cada agente:
+  Nodo: AI Agent (@n8n/n8n-nodes-langchain.agent)
+  Config:
+    promptType: define
+    text: "# Mensaje del usuario\n{{ $('Unificacion de Variables').item.json['Mensaje actual del usuario'] }}"
+    systemMessage: [pegar prompt del agente generado]
+  
+  Sub-nodo LLM:
+    model: gpt-4.1-mini
+    temperature: 0.4
+    maxTokens: 400
+  
+  Sub-nodo Memory:
+    type: Postgres Chat Memory
+    sessionKey: "={{ $('Unificacion de Variables').item.json.Telefono }}"
+    contextWindowLength: 15
+  
+  Sub-nodo Tool (si aplica):
+    - Supabase Vector Store (RAG): mode retrieve-as-tool + Embeddings OpenAI
+    - Google Sheets Tool: read mode + spreadsheet ID + sheet name
+```
+
+### 5. Filtro Inicial (SOLO si aplica)
+
+```yaml
+Nodo: Information Extractor1 (entre "NO existe" y "Crear Lead")
+Config: igual que el router pero con prompt del filtro inicial
+Decision: If node que lee $json.output.debe_continuar_bot
+  true → Crear Lead
+  false → No Operation (stop)
+```
+
+### 6. Post-Processing (segun arquitectura)
+
+**Opcion A: Deteccion de links (estilo Dr. Carlos)**
+```yaml
+Despues de TODOS los agentes, en paralelo al formatter:
+  If "Calendly Enviado": output contains "calendly.com"
+    true → Discord notification + Airtable set "Apagado"
+  If "WhatsApp": output contains "https://wa.me/"
+    true → Discord notification + Airtable set "Apagado"
+```
+
+**Opcion B: Detector descalificacion (estilo El Canal)**
+```yaml
+Despues de TODOS los agentes, en paralelo al formatter:
+  Information Extractor (detector): evalua output del agente
+  If "Descalificado?": $json.output.es_descalificacion == true
+    true → Airtable set "Apagado"
+```
+
+**Opcion C: Asignacion vendedores (estilo El Canal)**
+```yaml
+Despues del agente de derivacion:
+  Code Node: detecta link de vendedor en output
+  Switch: asigna a vendedor 1 o vendedor 2
+  Airtable update: campo "Asignado a"
+```
+
+### 7. ManyChat (credenciales + field IDs + flow IDs)
+
+```yaml
+HTTP Request - setCustomField:
+  url: https://api.manychat.com/fb/subscriber/setCustomField
+  auth: Bearer token del cliente
+  body: subscriber_id + field_id (del cliente) + field_value (texto)
+
+HTTP Request - sendFlow:
+  url: https://api.manychat.com/fb/sending/sendFlow
+  auth: Bearer token del cliente
+  body: subscriber_id + flow_ns (del cliente)
+```
+
+## Output
+
+Guardar en `outputs/workflows/{cliente}/workflow-config.md` con:
+
+```markdown
+# Configuracion del Workflow: {cliente}
+
+## Nodos a Modificar
+
+### 1. Airtable
+[credenciales, bases, tablas, campos]
+
+### 2. Router (Information Extractor)
+[prompt completo + schema + config del LLM]
+
+### 3. Switch
+[rutas con valores exactos]
+
+### 4. Agentes
+[por cada uno: prompt + config LLM + memory + tools]
+
+### 5. Post-Processing
+[que opciones se activaron y como]
+
+### 6. ManyChat
+[credenciales, field IDs, flow IDs]
+
+## Checklist de Configuracion
+- [ ] Airtable credenciales y tablas configuradas
+- [ ] Router prompt pegado en Information Extractor
+- [ ] Switch rutas configuradas
+- [ ] Agentes con prompts, LLM, memory y tools
+- [ ] Post-processing configurado
+- [ ] ManyChat credenciales, field ID y flow ID
+- [ ] Testeado con "REINICIAR" + 5 conversaciones simuladas
+```
 
 ## Skills Relacionados
 
-- `/momentum-prompt-gen` — paso anterior (genera los prompts que van en los agents)
+- `/momentum-prompt-gen` — paso anterior (genera los prompts que van en los nodos)
 - `/momentum-delivery` — siguiente paso (documento de entrega)
-- `@n8n-analyzer` — analiza workflows existentes para aprender patrones
