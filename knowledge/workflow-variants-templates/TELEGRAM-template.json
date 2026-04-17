@@ -3,6 +3,118 @@
   "nodes": [
     {
       "parameters": {
+        "content": "## FLUJO DE TELEGRAM - PRUEBAS CON CLIENTE REAL\n\nVersion del chatbot que corre sobre un bot de Telegram. Ideal para que el cliente (o un lead real) lo pruebe desde su celular como si fuera un WhatsApp.\n\n**Setup:**\n1. Crear un bot con @BotFather en Telegram\n2. Agregar el token en la credencial \"{CLIENTE} - Telegram\"\n3. Activar el workflow\n4. Darle el link del bot al cliente: t.me/NombreDelBot",
+        "height": 220,
+        "width": 440,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        140
+      ],
+      "id": "a7e9b1d0-note-0001-8000-000000000001",
+      "name": "Nota - Flujo Telegram"
+    },
+    {
+      "parameters": {
+        "content": "## COMANDO DE REINICIO\n\nSi el usuario escribe \"REINICIO\", \"reinicio\", \"reiniciar\" (y variantes), el bot:\n1. Borra su historial de Redis\n2. Borra su historial de Postgres\n3. Responde confirmando el reinicio\n\n**Por que:** Permite al cliente probar flujos distintos sin que el bot \"recuerde\" conversaciones anteriores.\n\n**IMPORTANTE:** Postgres delete usa operation \"deleteTable\" con deleteCommand \"delete\". El valor \"delete\" solo NO funciona.",
+        "height": 220,
+        "width": 440,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        300,
+        -60
+      ],
+      "id": "a7e9b1d0-note-0002-8000-000000000002",
+      "name": "Nota - Reinicio"
+    },
+    {
+      "parameters": {
+        "content": "## LECTURA DEL HISTORIAL\n\nPostgres lee los mensajes anteriores usando el chat_id de Telegram como sessionId.\n\nEl Code node transforma los registros en un string \"Usuario: X / Bot: Y\" que el Clasificador puede interpretar.\n\n**NOTA:** Despues del Code node el pairedItem de n8n se rompe. TODAS las expresiones a nodos anteriores deben usar `.first()` en vez de `.item`.",
+        "height": 200,
+        "width": 440,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        460,
+        340
+      ],
+      "id": "a7e9b1d0-note-0003-8000-000000000003",
+      "name": "Nota - Historial"
+    },
+    {
+      "parameters": {
+        "content": "## CORAZON DEL SISTEMA - ROUTING\n\nEl Clasificador (Information Extractor) decide que agente responde.\n\n**Reglas clave:**\n- El output tiene campo `destino` (NO `agente`, NO `decision`)\n- NO usar llaves `{ }` en el systemPromptTemplate — rompe n8n\n- Usar YAML para describir la estructura en el prompt, pero el output es JSON",
+        "height": 200,
+        "width": 440,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1020,
+        300
+      ],
+      "id": "a7e9b1d0-note-0004-8000-000000000004",
+      "name": "Nota - Routing"
+    },
+    {
+      "parameters": {
+        "content": "## AGENTES AI + BACKUP\n\n3 rutas del Switch:\n- LEO_PRINCIPAL / AGENTE_PRINCIPAL: flujo normal\n- AGENTE_OBJECIONES: maneja objeciones con LAARC\n- HANDOFF_HUMANO: envia mensaje estatico y espera intervencion\n- BACKUP (notExists): si el router devuelve vacio, va al Principal\n\nCada agente guarda su propia memoria Postgres con sessionKey = chat_id.",
+        "height": 220,
+        "width": 440,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1580,
+        80
+      ],
+      "id": "a7e9b1d0-note-0005-8000-000000000005",
+      "name": "Nota - Agentes"
+    },
+    {
+      "parameters": {
+        "content": "## FORMATEADOR DE MENSAJES\n\nEl Basic LLM Chain toma la respuesta del agente y la divide en multiples mensajes cortos (max 3 lineas cada uno).\n\n**Por que:** En WhatsApp/Telegram se ve mas natural recibir 3 mensajes cortos que 1 mensaje largo.\n\n**Modelo:** gpt-4o-mini (el prompt del formateador es universal, no cambia entre clientes).",
+        "height": 200,
+        "width": 440,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        0
+      ],
+      "id": "a7e9b1d0-note-0006-8000-000000000006",
+      "name": "Nota - Formateador"
+    },
+    {
+      "parameters": {
+        "content": "## ENVIO EN CHUNKS POR TELEGRAM\n\nItera cada chunk del formateador:\n1. Verifica que no sea vacio\n2. Envia via Telegram\n3. Espera unos segundos (simula pausa humana)\n4. Siguiente chunk\n\n**IMPORTANTE:** Todos los nodos \"Telegram Send\" llevan `additionalFields.appendAttribution: false` para que n8n NO agregue \"Sent via n8n.io\" al final (eso delata al bot).",
+        "height": 220,
+        "width": 440,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2380,
+        0
+      ],
+      "id": "a7e9b1d0-note-0007-8000-000000000007",
+      "name": "Nota - Envio Chunks"
+    },
+    {
+      "parameters": {
         "updates": [
           "message"
         ],
@@ -15,7 +127,7 @@
         400
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000001",
-      "name": "Telegram Trigger",
+      "name": "Recibir Mensaje (Telegram)",
       "webhookId": "a7e9b1d0-tg00-webhook-telegram",
       "credentials": {
         "telegramApi": {
@@ -51,7 +163,7 @@
         400
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000002",
-      "name": "ID y Mensaje"
+      "name": "Extraer ID y Mensaje"
     },
     {
       "parameters": {
@@ -129,12 +241,12 @@
         400
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000003",
-      "name": "REINICIAR?"
+      "name": "Es comando REINICIO?"
     },
     {
       "parameters": {
         "operation": "delete",
-        "key": "={{ $('ID y Mensaje').first().json.ID }}"
+        "key": "={{ $('Extraer ID y Mensaje').first().json.ID }}"
       },
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
@@ -143,7 +255,7 @@
         200
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000004",
-      "name": "Vacia Redis",
+      "name": "Limpiar Redis (Reinicio)",
       "credentials": {
         "redis": {
           "id": "PLACEHOLDER",
@@ -169,7 +281,7 @@
           "values": [
             {
               "column": "session_id",
-              "value": "={{ $('ID y Mensaje').first().json.ID }}"
+              "value": "={{ $('Extraer ID y Mensaje').first().json.ID }}"
             }
           ]
         }
@@ -181,7 +293,7 @@
         200
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000005",
-      "name": "Delete Postgres historial",
+      "name": "Borrar Historial (Reinicio)",
       "credentials": {
         "postgres": {
           "id": "PLACEHOLDER",
@@ -191,7 +303,7 @@
     },
     {
       "parameters": {
-        "chatId": "={{ $('ID y Mensaje').first().json.ID }}",
+        "chatId": "={{ $('Extraer ID y Mensaje').first().json.ID }}",
         "text": "Conversacion reiniciada. Podemos empezar de nuevo cuando quieras.",
         "additionalFields": {
           "appendAttribution": false
@@ -204,7 +316,7 @@
         200
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000006",
-      "name": "Telegram Send Reinicio",
+      "name": "Enviar Confirmacion de Reinicio",
       "credentials": {
         "telegramApi": {
           "id": "PLACEHOLDER",
@@ -225,13 +337,13 @@
             {
               "id": "a7e9b1d0-tg00-vars-0002-000000000002",
               "name": "Mensaje actual del usuario",
-              "value": "={{ $('ID y Mensaje').first().json.Mensaje }}",
+              "value": "={{ $('Extraer ID y Mensaje').first().json.Mensaje }}",
               "type": "string"
             },
             {
               "id": "a7e9b1d0-tg00-vars-0003-000000000003",
               "name": "Telefono",
-              "value": "={{ $('ID y Mensaje').first().json.ID }}",
+              "value": "={{ $('Extraer ID y Mensaje').first().json.ID }}",
               "type": "string"
             }
           ]
@@ -245,7 +357,7 @@
         560
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000007",
-      "name": "Variables"
+      "name": "Setear Variables Iniciales"
     },
     {
       "parameters": {
@@ -266,7 +378,7 @@
           "values": [
             {
               "column": "session_id",
-              "value": "={{ $('ID y Mensaje').first().json.ID }}"
+              "value": "={{ $('Extraer ID y Mensaje').first().json.ID }}"
             }
           ]
         },
@@ -286,7 +398,7 @@
         560
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000008",
-      "name": "Conversation",
+      "name": "Leer Historial (Postgres)",
       "alwaysOutputData": true,
       "credentials": {
         "postgres": {
@@ -307,7 +419,7 @@
         560
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000009",
-      "name": "Code"
+      "name": "Formatear Historial"
     },
     {
       "parameters": {
@@ -322,13 +434,13 @@
             {
               "id": "a7e9b1d0-tg00-unif-0002-000000000002",
               "name": "Mensaje actual del usuario",
-              "value": "={{ $('Variables').first().json['Mensaje actual del usuario'] }}",
+              "value": "={{ $('Setear Variables Iniciales').first().json['Mensaje actual del usuario'] }}",
               "type": "string"
             },
             {
               "id": "a7e9b1d0-tg00-unif-0003-000000000003",
               "name": "Telefono",
-              "value": "={{ $('Variables').first().json.Telefono }}",
+              "value": "={{ $('Setear Variables Iniciales').first().json.Telefono }}",
               "type": "string"
             }
           ]
@@ -342,7 +454,7 @@
         560
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000010",
-      "name": "Unificacion de Variables"
+      "name": "Unificar Variables"
     },
     {
       "parameters": {
@@ -360,7 +472,7 @@
         560
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000011",
-      "name": "Information Extractor"
+      "name": "Clasificador / Orquestador"
     },
     {
       "parameters": {
@@ -383,7 +495,7 @@
         780
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000012",
-      "name": "OpenAI Chat Model",
+      "name": "LLM del Clasificador",
       "credentials": {
         "openAiApi": {
           "id": "PLACEHOLDER",
@@ -505,12 +617,12 @@
         560
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000013",
-      "name": "Switch1"
+      "name": "Enrutador de Agentes"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=# Mensaje del usuario\n{{ $('Variables').first().json['Mensaje actual del usuario'] }}",
+        "text": "=# Mensaje del usuario\n{{ $('Setear Variables Iniciales').first().json['Mensaje actual del usuario'] }}",
         "options": {
           "systemMessage": "# AGENTE PRINCIPAL — {{NOMBRE_EMPRESA}}\n\n## IDENTIDAD\nSos {{BOT_NOMBRE}}, {{BOT_ROL}} de {{NOMBRE_EMPRESA}}.\n\nFecha actual: 2026-04-17\n\n## OBJETIVO\n{{OBJETIVO_PRINCIPAL}}\n\n## INFORMACION DEL NEGOCIO\n{{INFO_NEGOCIO}}\n\n## FLUJO CONVERSACIONAL\n(Adaptar segun discovery del cliente)\n\n## REGLAS CRITICAS\n1. Max 3-4 lineas por mensaje\n2. UNA pregunta por mensaje\n3. Puntuacion informal (sin :, sin ;, sin ¿)\n4. Cierre en 2 pasos (proponer → esperar confirmacion → enviar link)\n5. Variar mensajes repetidos\n6. No prometer material que no existe\n\n## CIERRE EN 2 PASOS\nPASO 5A: Proponer (sin link)\nPASO 5B: Enviar link (solo tras confirmacion afirmativa)\n\n(Completar con detalles del cliente)"
         }
@@ -522,7 +634,7 @@
         340
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000014",
-      "name": "AI Agent - Principal"
+      "name": "Agente Principal"
     },
     {
       "parameters": {
@@ -543,7 +655,7 @@
         560
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000015",
-      "name": "OpenAI Chat Model2",
+      "name": "LLM del Agente Principal",
       "credentials": {
         "openAiApi": {
           "id": "PLACEHOLDER",
@@ -554,7 +666,7 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "={{ $('Variables').first().json.Telefono }}",
+        "sessionKey": "={{ $('Setear Variables Iniciales').first().json.Telefono }}",
         "contextWindowLength": 15
       },
       "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
@@ -564,7 +676,7 @@
         560
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000016",
-      "name": "Postgres Chat Memory",
+      "name": "Memoria - Principal",
       "credentials": {
         "postgres": {
           "id": "PLACEHOLDER",
@@ -575,7 +687,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=# Mensaje del usuario\n{{ $('Variables').first().json['Mensaje actual del usuario'] }}",
+        "text": "=# Mensaje del usuario\n{{ $('Setear Variables Iniciales').first().json['Mensaje actual del usuario'] }}",
         "options": {
           "systemMessage": "# AGENTE OBJECIONES — {{NOMBRE_EMPRESA}}\n\nSeguis siendo {{BOT_NOMBRE}}. Manejas UNA objecion con framework LAARC.\n\n## LAARC\nL - Listen: mostrar que escuchaste\nA - Acknowledge: validar la preocupacion\nA - Assess: preguntar causa raiz\nR - Respond: estrategia segun tipo\nC - Confirm: verificar que quedo resuelto\n\nTodo en UN mensaje fluido, max 4 lineas.\n\n## OBJECIONES COMUNES\n- Precio/caro\n- Timing/no es momento\n- Miedo/desconfianza\n\n## REGLAS\n1. NUNCA coordinar fecha/hora directamente — usar link\n2. NUNCA ofrecer descuento\n3. NUNCA defender agresivamente\n4. SIEMPRE terminar con pregunta de confirmacion\n\n(Completar con objeciones especificas del cliente)"
         }
@@ -587,7 +699,7 @@
         720
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000018",
-      "name": "AI Agent - Objeciones"
+      "name": "Agente de Objeciones (LAARC)"
     },
     {
       "parameters": {
@@ -608,7 +720,7 @@
         940
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000019",
-      "name": "OpenAI Chat Model - Objeciones",
+      "name": "LLM del Agente de Objeciones",
       "credentials": {
         "openAiApi": {
           "id": "PLACEHOLDER",
@@ -619,7 +731,7 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "={{ $('Variables').first().json.Telefono }}",
+        "sessionKey": "={{ $('Setear Variables Iniciales').first().json.Telefono }}",
         "contextWindowLength": 15
       },
       "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
@@ -629,7 +741,7 @@
         940
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000020",
-      "name": "Postgres Chat Memory - Objeciones",
+      "name": "Memoria - Objeciones",
       "credentials": {
         "postgres": {
           "id": "PLACEHOLDER",
@@ -639,7 +751,7 @@
     },
     {
       "parameters": {
-        "chatId": "={{ $('ID y Mensaje').first().json.ID }}",
+        "chatId": "={{ $('Extraer ID y Mensaje').first().json.ID }}",
         "text": "Gracias por tu mensaje. Voy a pasarte con un miembro del equipo para que te ayude directamente.",
         "additionalFields": {
           "appendAttribution": false
@@ -652,7 +764,7 @@
         1100
       ],
       "id": "a7e9b1d0-tg00-4000-8000-000000000022",
-      "name": "Telegram Send Handoff",
+      "name": "Enviar Mensaje de Handoff",
       "credentials": {
         "telegramApi": {
           "id": "PLACEHOLDER",
@@ -680,7 +792,7 @@
         240
       ],
       "id": "d9ba402a-db0c-4971-97be-ea5b9645f963",
-      "name": "Basic LLM Chain4",
+      "name": "Formateador de Mensajes",
       "retryOnFail": true,
       "maxTries": 5
     },
@@ -700,7 +812,7 @@
         440
       ],
       "id": "b894a218-bdfe-4265-aa20-9389450a0ad8",
-      "name": "OpenAI Chat Model13",
+      "name": "LLM del Formateador",
       "notesInFlow": false,
       "credentials": {
         "openAiApi": {
@@ -722,7 +834,7 @@
         440
       ],
       "id": "b58abb79-10e2-4f5b-bf58-1194d6ebba02",
-      "name": "Auto-fixing Output Parser3"
+      "name": "Parser Auto-correctivo"
     },
     {
       "parameters": {
@@ -736,7 +848,7 @@
         580
       ],
       "id": "ca4e3bdd-91f9-446a-9ea9-9e305882eb5a",
-      "name": "Structured Output Parser3"
+      "name": "Parser Estructurado"
     },
     {
       "parameters": {
@@ -754,7 +866,7 @@
         580
       ],
       "id": "85ca4b58-ddbf-4e29-b072-14c6bfdc6759",
-      "name": "OpenAI Chat Model14",
+      "name": "LLM del Parser",
       "credentials": {
         "openAiApi": {
           "id": "PLACEHOLDER",
@@ -774,7 +886,7 @@
         240
       ],
       "id": "3e5c03ab-f849-4f71-971e-feabfe19d80c",
-      "name": "Split Out"
+      "name": "Separar Mensajes"
     },
     {
       "parameters": {
@@ -789,7 +901,7 @@
         240
       ],
       "id": "267f2196-4877-4fa2-91a0-e16e0d0986d8",
-      "name": "Loop Over Items1"
+      "name": "Iterar Mensajes"
     },
     {
       "parameters": {
@@ -823,7 +935,7 @@
         240
       ],
       "id": "2b9f172f-eb80-4286-bc78-b6938421fca4",
-      "name": "If5"
+      "name": "Mensaje No Vacio?"
     },
     {
       "parameters": {},
@@ -834,12 +946,12 @@
         380
       ],
       "id": "4ab81d24-4501-4f0b-a2be-6d7934f76ebe",
-      "name": "Wait2",
+      "name": "Pausa entre Mensajes",
       "webhookId": "c1d2e3f4-0001-4000-8000-000000000001"
     },
     {
       "parameters": {
-        "chatId": "={{ $('ID y Mensaje').first().json.ID }}",
+        "chatId": "={{ $('Extraer ID y Mensaje').first().json.ID }}",
         "text": "={{ $json.output }}",
         "additionalFields": {
           "appendAttribution": false
@@ -852,7 +964,7 @@
         240
       ],
       "id": "7a838101-3242-4359-bd94-153c9522ad05",
-      "name": "Telegram Send Chunk",
+      "name": "Enviar Chunk (Telegram)",
       "credentials": {
         "telegramApi": {
           "id": "PLACEHOLDER",
@@ -863,344 +975,344 @@
   ],
   "pinData": {},
   "connections": {
-    "Telegram Trigger": {
+    "Recibir Mensaje (Telegram)": {
       "main": [
         [
           {
-            "node": "ID y Mensaje",
+            "node": "Extraer ID y Mensaje",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "ID y Mensaje": {
+    "Extraer ID y Mensaje": {
       "main": [
         [
           {
-            "node": "REINICIAR?",
+            "node": "Es comando REINICIO?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "REINICIAR?": {
+    "Es comando REINICIO?": {
       "main": [
         [
           {
-            "node": "Vacia Redis",
+            "node": "Limpiar Redis (Reinicio)",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Variables",
+            "node": "Setear Variables Iniciales",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Vacia Redis": {
+    "Limpiar Redis (Reinicio)": {
       "main": [
         [
           {
-            "node": "Delete Postgres historial",
+            "node": "Borrar Historial (Reinicio)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Delete Postgres historial": {
+    "Borrar Historial (Reinicio)": {
       "main": [
         [
           {
-            "node": "Telegram Send Reinicio",
+            "node": "Enviar Confirmacion de Reinicio",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Variables": {
+    "Setear Variables Iniciales": {
       "main": [
         [
           {
-            "node": "Conversation",
+            "node": "Leer Historial (Postgres)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Conversation": {
+    "Leer Historial (Postgres)": {
       "main": [
         [
           {
-            "node": "Code",
+            "node": "Formatear Historial",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code": {
+    "Formatear Historial": {
       "main": [
         [
           {
-            "node": "Unificacion de Variables",
+            "node": "Unificar Variables",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Unificacion de Variables": {
+    "Unificar Variables": {
       "main": [
         [
           {
-            "node": "Information Extractor",
+            "node": "Clasificador / Orquestador",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Information Extractor": {
+    "Clasificador / Orquestador": {
       "main": [
         [
           {
-            "node": "Switch1",
+            "node": "Enrutador de Agentes",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "OpenAI Chat Model": {
+    "LLM del Clasificador": {
       "ai_languageModel": [
         [
           {
-            "node": "Information Extractor",
+            "node": "Clasificador / Orquestador",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Switch1": {
+    "Enrutador de Agentes": {
       "main": [
         [
           {
-            "node": "AI Agent - Principal",
+            "node": "Agente Principal",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "AI Agent - Objeciones",
+            "node": "Agente de Objeciones (LAARC)",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Telegram Send Handoff",
+            "node": "Enviar Mensaje de Handoff",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "AI Agent - Principal",
+            "node": "Agente Principal",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "OpenAI Chat Model2": {
+    "LLM del Agente Principal": {
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent - Principal",
+            "node": "Agente Principal",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Postgres Chat Memory": {
+    "Memoria - Principal": {
       "ai_memory": [
         [
           {
-            "node": "AI Agent - Principal",
+            "node": "Agente Principal",
             "type": "ai_memory",
             "index": 0
           }
         ]
       ]
     },
-    "AI Agent - Principal": {
+    "Agente Principal": {
       "main": [
         [
           {
-            "node": "Basic LLM Chain4",
+            "node": "Formateador de Mensajes",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "OpenAI Chat Model - Objeciones": {
+    "LLM del Agente de Objeciones": {
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent - Objeciones",
+            "node": "Agente de Objeciones (LAARC)",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Postgres Chat Memory - Objeciones": {
+    "Memoria - Objeciones": {
       "ai_memory": [
         [
           {
-            "node": "AI Agent - Objeciones",
+            "node": "Agente de Objeciones (LAARC)",
             "type": "ai_memory",
             "index": 0
           }
         ]
       ]
     },
-    "AI Agent - Objeciones": {
+    "Agente de Objeciones (LAARC)": {
       "main": [
         [
           {
-            "node": "Basic LLM Chain4",
+            "node": "Formateador de Mensajes",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Basic LLM Chain4": {
+    "Formateador de Mensajes": {
       "main": [
         [
           {
-            "node": "Split Out",
+            "node": "Separar Mensajes",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Split Out": {
+    "Separar Mensajes": {
       "main": [
         [
           {
-            "node": "Loop Over Items1",
+            "node": "Iterar Mensajes",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Loop Over Items1": {
+    "Iterar Mensajes": {
       "main": [
         [],
         [
           {
-            "node": "If5",
+            "node": "Mensaje No Vacio?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "If5": {
+    "Mensaje No Vacio?": {
       "main": [
         [
           {
-            "node": "Telegram Send Chunk",
+            "node": "Enviar Chunk (Telegram)",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Wait2",
+            "node": "Pausa entre Mensajes",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Telegram Send Chunk": {
+    "Enviar Chunk (Telegram)": {
       "main": [
         [
           {
-            "node": "Wait2",
+            "node": "Pausa entre Mensajes",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Wait2": {
+    "Pausa entre Mensajes": {
       "main": [
         [
           {
-            "node": "Loop Over Items1",
+            "node": "Iterar Mensajes",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "OpenAI Chat Model13": {
+    "LLM del Formateador": {
       "ai_languageModel": [
         [
           {
-            "node": "Basic LLM Chain4",
+            "node": "Formateador de Mensajes",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Auto-fixing Output Parser3": {
+    "Parser Auto-correctivo": {
       "ai_outputParser": [
         [
           {
-            "node": "Basic LLM Chain4",
+            "node": "Formateador de Mensajes",
             "type": "ai_outputParser",
             "index": 0
           }
         ]
       ]
     },
-    "Structured Output Parser3": {
+    "Parser Estructurado": {
       "ai_outputParser": [
         [
           {
-            "node": "Auto-fixing Output Parser3",
+            "node": "Parser Auto-correctivo",
             "type": "ai_outputParser",
             "index": 0
           }
         ]
       ]
     },
-    "OpenAI Chat Model14": {
+    "LLM del Parser": {
       "ai_languageModel": [
         [
           {
-            "node": "Auto-fixing Output Parser3",
+            "node": "Parser Auto-correctivo",
             "type": "ai_languageModel",
             "index": 0
           }

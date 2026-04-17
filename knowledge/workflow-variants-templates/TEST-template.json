@@ -2,6 +2,70 @@
   "name": "Template TEST",
   "nodes": [
     {
+      "parameters": {
+        "content": "## FLUJO DE PRUEBAS - CHAT INTERNO N8N\n\nEste workflow es una version simplificada para probar rapidamente la logica del chatbot sin necesidad de Telegram, ManyChat, ni webhooks externos.\n\n**Uso:** Activar el workflow, abrir el chat de n8n (esquina inferior derecha), y escribir mensajes.\n\n**Que incluye:** Router + Agentes + Memoria Postgres.\n**Que NO incluye:** Airtable, Redis batching, formateador, envio a canales externos.",
+        "height": 220,
+        "width": 420,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        140
+      ],
+      "id": "b1a2c3d4-note-0001-8000-000000000001",
+      "name": "Nota - Flujo de Pruebas"
+    },
+    {
+      "parameters": {
+        "content": "## LECTURA Y FORMATEO DEL HISTORIAL\n\n1. Postgres: lee el historial del usuario por sessionId\n2. Code: formatea como \"Usuario: ... / Bot: ...\"\n3. Unificar: deja el historial listo para el Clasificador\n\n**Por que:** El router necesita el historial completo para tomar decisiones contextuales (ej: \"esta es la primera objecion o ya hubo una?\").",
+        "height": 200,
+        "width": 440,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        360,
+        160
+      ],
+      "id": "b1a2c3d4-note-0002-8000-000000000002",
+      "name": "Nota - Historial"
+    },
+    {
+      "parameters": {
+        "content": "## CORAZON DEL SISTEMA - ROUTING\n\nEl Clasificador (Information Extractor) decide que agente responde basandose en historial + mensaje actual.\n\n**Output obligatorio:** `{ destino: \"...\", motivo: \"...\", datos_extraidos: {...} }`\n\nEl Enrutador (Switch) lee `$json.output.destino` y manda al agente correcto.\n\n**CRITICO:** El prompt del Clasificador define TODO el comportamiento del routing. Si rutea mal, el chatbot entero falla.",
+        "height": 220,
+        "width": 440,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        820,
+        120
+      ],
+      "id": "b1a2c3d4-note-0003-8000-000000000003",
+      "name": "Nota - Routing"
+    },
+    {
+      "parameters": {
+        "content": "## AGENTES AI\n\n- **Agente Principal**: flujo normal (discovery, educacion, calificacion, cierre)\n- **Agente de Objeciones**: maneja UNA objecion con framework LAARC\n- **BACKUP**: si el router devuelve output vacio, por defecto va al Principal\n\nCada agente tiene su propia memoria Postgres (context window 15).\n\nEn esta version TEST, los agentes son TERMINALES — su output se muestra directo en el chat de n8n.",
+        "height": 220,
+        "width": 440,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1380,
+        200
+      ],
+      "id": "b1a2c3d4-note-0004-8000-000000000004",
+      "name": "Nota - Agentes"
+    },
+    {
       "parameters": {},
       "type": "@n8n/n8n-nodes-langchain.chatTrigger",
       "typeVersion": 1.1,
@@ -10,7 +74,7 @@
         400
       ],
       "id": "b1a2c3d4-0001-4000-8000-000000000001",
-      "name": "Chat Trigger",
+      "name": "Chat de Pruebas (n8n)",
       "webhookId": "f4e5d6c7-test-chat-trigger"
     },
     {
@@ -46,7 +110,7 @@
         400
       ],
       "id": "b1a2c3d4-0002-4000-8000-000000000002",
-      "name": "Variables"
+      "name": "Setear Variables Iniciales"
     },
     {
       "parameters": {
@@ -67,7 +131,7 @@
           "values": [
             {
               "column": "session_id",
-              "value": "={{ $('Chat Trigger').item.json.sessionId }}"
+              "value": "={{ $('Chat de Pruebas (n8n)').item.json.sessionId }}"
             }
           ]
         },
@@ -87,7 +151,7 @@
         400
       ],
       "id": "c3f8a1b2-test-4a00-8b00-000000000101",
-      "name": "Conversation",
+      "name": "Leer Historial (Postgres)",
       "alwaysOutputData": true,
       "credentials": {
         "postgres": {
@@ -108,7 +172,7 @@
         400
       ],
       "id": "c3f8a1b2-test-4a00-8b00-000000000102",
-      "name": "Code"
+      "name": "Formatear Historial"
     },
     {
       "parameters": {
@@ -123,13 +187,13 @@
             {
               "id": "c3f8a1b2-test-unif-0002-000000000002",
               "name": "Mensaje actual del usuario",
-              "value": "={{ $('Variables').first().json['Mensaje actual del usuario'] }}",
+              "value": "={{ $('Setear Variables Iniciales').first().json['Mensaje actual del usuario'] }}",
               "type": "string"
             },
             {
               "id": "c3f8a1b2-test-unif-0003-000000000003",
               "name": "Telefono",
-              "value": "={{ $('Variables').first().json.Telefono }}",
+              "value": "={{ $('Setear Variables Iniciales').first().json.Telefono }}",
               "type": "string"
             }
           ]
@@ -143,7 +207,7 @@
         400
       ],
       "id": "c3f8a1b2-test-4a00-8b00-000000000103",
-      "name": "Unificación de Variables"
+      "name": "Unificar Variables"
     },
     {
       "parameters": {
@@ -161,7 +225,7 @@
         400
       ],
       "id": "b1a2c3d4-0003-4000-8000-000000000003",
-      "name": "Information Extractor"
+      "name": "Clasificador / Orquestador"
     },
     {
       "parameters": {
@@ -184,7 +248,7 @@
         620
       ],
       "id": "b1a2c3d4-0004-4000-8000-000000000004",
-      "name": "OpenAI Chat Model",
+      "name": "LLM del Clasificador",
       "credentials": {
         "openAiApi": {
           "id": "PLACEHOLDER",
@@ -306,12 +370,12 @@
         400
       ],
       "id": "b1a2c3d4-0005-4000-8000-000000000005",
-      "name": "Switch1"
+      "name": "Enrutador de Agentes"
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=# Mensaje del usuario\n{{ $('Variables').first().json['Mensaje actual del usuario'] }}",
+        "text": "=# Mensaje del usuario\n{{ $('Setear Variables Iniciales').first().json['Mensaje actual del usuario'] }}",
         "options": {
           "systemMessage": "# AGENTE PRINCIPAL — {{NOMBRE_EMPRESA}}\n\n## IDENTIDAD\nSos {{BOT_NOMBRE}}, {{BOT_ROL}} de {{NOMBRE_EMPRESA}}.\n\nFecha actual: 2026-04-17\n\n## OBJETIVO\n{{OBJETIVO_PRINCIPAL}}\n\n## INFORMACION DEL NEGOCIO\n{{INFO_NEGOCIO}}\n\n## FLUJO CONVERSACIONAL\n(Adaptar segun discovery del cliente)\n\n## REGLAS CRITICAS\n1. Max 3-4 lineas por mensaje\n2. UNA pregunta por mensaje\n3. Puntuacion informal (sin :, sin ;, sin ¿)\n4. Cierre en 2 pasos (proponer → esperar confirmacion → enviar link)\n5. Variar mensajes repetidos\n6. No prometer material que no existe\n\n## CIERRE EN 2 PASOS\nPASO 5A: Proponer (sin link)\nPASO 5B: Enviar link (solo tras confirmacion afirmativa)\n\n(Completar con detalles del cliente)"
         }
@@ -323,7 +387,7 @@
         200
       ],
       "id": "b1a2c3d4-0006-4000-8000-000000000006",
-      "name": "AI Agent - Principal"
+      "name": "Agente Principal"
     },
     {
       "parameters": {
@@ -344,7 +408,7 @@
         440
       ],
       "id": "b1a2c3d4-0007-4000-8000-000000000007",
-      "name": "OpenAI Chat Model2",
+      "name": "LLM del Agente Principal",
       "credentials": {
         "openAiApi": {
           "id": "PLACEHOLDER",
@@ -355,7 +419,7 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "={{ $('Variables').first().json.Telefono }}",
+        "sessionKey": "={{ $('Setear Variables Iniciales').first().json.Telefono }}",
         "contextWindowLength": 15
       },
       "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
@@ -365,7 +429,7 @@
         440
       ],
       "id": "b1a2c3d4-0008-4000-8000-000000000008",
-      "name": "Postgres Chat Memory",
+      "name": "Memoria - Principal",
       "credentials": {
         "postgres": {
           "id": "PLACEHOLDER",
@@ -376,7 +440,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=# Mensaje del usuario\n{{ $('Variables').first().json['Mensaje actual del usuario'] }}",
+        "text": "=# Mensaje del usuario\n{{ $('Setear Variables Iniciales').first().json['Mensaje actual del usuario'] }}",
         "options": {
           "systemMessage": "# AGENTE OBJECIONES — {{NOMBRE_EMPRESA}}\n\nSeguis siendo {{BOT_NOMBRE}}. Manejas UNA objecion con framework LAARC.\n\n## LAARC\nL - Listen: mostrar que escuchaste\nA - Acknowledge: validar la preocupacion\nA - Assess: preguntar causa raiz\nR - Respond: estrategia segun tipo\nC - Confirm: verificar que quedo resuelto\n\nTodo en UN mensaje fluido, max 4 lineas.\n\n## OBJECIONES COMUNES\n- Precio/caro\n- Timing/no es momento\n- Miedo/desconfianza\n\n## REGLAS\n1. NUNCA coordinar fecha/hora directamente — usar link\n2. NUNCA ofrecer descuento\n3. NUNCA defender agresivamente\n4. SIEMPRE terminar con pregunta de confirmacion\n\n(Completar con objeciones especificas del cliente)"
         }
@@ -388,7 +452,7 @@
         560
       ],
       "id": "b1a2c3d4-0009-4000-8000-000000000009",
-      "name": "AI Agent - Objeciones"
+      "name": "Agente de Objeciones (LAARC)"
     },
     {
       "parameters": {
@@ -409,7 +473,7 @@
         800
       ],
       "id": "b1a2c3d4-0010-4000-8000-000000000010",
-      "name": "OpenAI Chat Model - Objeciones",
+      "name": "LLM del Agente de Objeciones",
       "credentials": {
         "openAiApi": {
           "id": "PLACEHOLDER",
@@ -420,7 +484,7 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "={{ $('Variables').first().json.Telefono }}",
+        "sessionKey": "={{ $('Setear Variables Iniciales').first().json.Telefono }}",
         "contextWindowLength": 15
       },
       "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
@@ -430,7 +494,7 @@
         800
       ],
       "id": "b1a2c3d4-0011-4000-8000-000000000011",
-      "name": "Postgres Chat Memory - Objeciones",
+      "name": "Memoria - Objeciones",
       "credentials": {
         "postgres": {
           "id": "PLACEHOLDER",
@@ -459,158 +523,158 @@
         920
       ],
       "id": "b1a2c3d4-0012-4000-8000-000000000012",
-      "name": "Handoff Message"
+      "name": "Mensaje de Handoff"
     }
   ],
   "pinData": {},
   "connections": {
-    "Chat Trigger": {
+    "Chat de Pruebas (n8n)": {
       "main": [
         [
           {
-            "node": "Variables",
+            "node": "Setear Variables Iniciales",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Variables": {
+    "Setear Variables Iniciales": {
       "main": [
         [
           {
-            "node": "Conversation",
+            "node": "Leer Historial (Postgres)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Conversation": {
+    "Leer Historial (Postgres)": {
       "main": [
         [
           {
-            "node": "Code",
+            "node": "Formatear Historial",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code": {
+    "Formatear Historial": {
       "main": [
         [
           {
-            "node": "Unificación de Variables",
+            "node": "Unificar Variables",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Unificación de Variables": {
+    "Unificar Variables": {
       "main": [
         [
           {
-            "node": "Information Extractor",
+            "node": "Clasificador / Orquestador",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Information Extractor": {
+    "Clasificador / Orquestador": {
       "main": [
         [
           {
-            "node": "Switch1",
+            "node": "Enrutador de Agentes",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "OpenAI Chat Model": {
+    "LLM del Clasificador": {
       "ai_languageModel": [
         [
           {
-            "node": "Information Extractor",
+            "node": "Clasificador / Orquestador",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Switch1": {
+    "Enrutador de Agentes": {
       "main": [
         [
           {
-            "node": "AI Agent - Principal",
+            "node": "Agente Principal",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "AI Agent - Objeciones",
+            "node": "Agente de Objeciones (LAARC)",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Handoff Message",
+            "node": "Mensaje de Handoff",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "AI Agent - Principal",
+            "node": "Agente Principal",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "OpenAI Chat Model2": {
+    "LLM del Agente Principal": {
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent - Principal",
+            "node": "Agente Principal",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Postgres Chat Memory": {
+    "Memoria - Principal": {
       "ai_memory": [
         [
           {
-            "node": "AI Agent - Principal",
+            "node": "Agente Principal",
             "type": "ai_memory",
             "index": 0
           }
         ]
       ]
     },
-    "OpenAI Chat Model - Objeciones": {
+    "LLM del Agente de Objeciones": {
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent - Objeciones",
+            "node": "Agente de Objeciones (LAARC)",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Postgres Chat Memory - Objeciones": {
+    "Memoria - Objeciones": {
       "ai_memory": [
         [
           {
-            "node": "AI Agent - Objeciones",
+            "node": "Agente de Objeciones (LAARC)",
             "type": "ai_memory",
             "index": 0
           }

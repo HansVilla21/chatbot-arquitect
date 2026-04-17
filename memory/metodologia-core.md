@@ -188,6 +188,91 @@ Sin esto, n8n agrega automaticamente al final de cada mensaje "Sent via n8n.io" 
 }
 ```
 
+## Nombres de nodos — representativos, no tecnicos (CRITICO)
+
+Cada nodo en un workflow n8n debe tener un nombre que describa QUE HACE en el contexto del chatbot, no el tipo tecnico del nodo. Esto hace que cualquier persona entienda el flujo a simple vista.
+
+**Tabla de nombres comprobados (usar siempre estos):**
+
+| Tipo tecnico | Nombre representativo |
+|--------------|----------------------|
+| Information Extractor (router) | Clasificador / Orquestador |
+| Information Extractor (filtro inicial) | Filtro Inicial de Mensajes |
+| Information Extractor (detector descal.) | Detector de Descalificacion |
+| Switch (routing de agentes) | Enrutador de Agentes |
+| AI Agent (principal) | Agente Principal - [NombreBot] |
+| AI Agent (objeciones) | Agente de Objeciones (LAARC) |
+| AI Agent (inventario) | Agente de Inventario |
+| Basic LLM Chain (formateador) | Formateador de Mensajes |
+| Code (formatea historial) | Formatear Historial |
+| Postgres select n8n_chat_histories | Leer Historial (Postgres) |
+| Postgres delete (reinicio) | Borrar Historial (Reinicio) |
+| Redis push | Guardar Mensaje en Redis |
+| Redis get | Leer Mensajes de Redis |
+| Redis delete | Limpiar Redis |
+| Wait (batching) | Esperar Mensajes Adicionales |
+| Wait (entre mensajes) | Pausa entre Mensajes |
+| If (es ultimo?) | Es el Ultimo Mensaje? |
+| If (es vacio?) | Mensaje Vacio? |
+| Split Out | Separar Mensajes |
+| Loop Over Items | Iterar Mensajes |
+| Set (ID y Mensaje) | Extraer ID y Mensaje |
+| Set (Variables) | Setear Variables |
+| Set (Unificacion) | Unificar Variables |
+| Telegram Trigger | Recibir Mensaje (Telegram) |
+| Telegram Send | Enviar Mensaje (Telegram) |
+| Webhook (ManyChat) | Recibir Mensaje (ManyChat) |
+| HTTP Request (setCustomField) | Actualizar Campo ManyChat |
+| HTTP Request (sendFlow) | Enviar Respuesta (ManyChat) |
+
+## Sticky Notes explicativas en workflows (CRITICO)
+
+Todos los workflows que se suben al repo publico DEBEN tener Sticky Notes (`n8n-nodes-base.stickyNote`) que expliquen cada seccion del flujo. Estas notas:
+
+1. **Sirven como documentacion visual** — alguien nuevo entiende el workflow sin adivinar
+2. **Explican el POR QUE** de cada decision, no solo el QUE hace
+3. **Marcan las zonas** del flujo (ej: "REINICIO", "BATCHING", "RUTEO", "AGENTES", "FORMATEADOR")
+
+**Formato tipico de una Sticky Note:**
+```json
+{
+  "type": "n8n-nodes-base.stickyNote",
+  "typeVersion": 1,
+  "parameters": {
+    "content": "## [TITULO DE LA SECCION]\n\n[Explicacion de que hace]\n\n**Por que:** [Razon de diseño]",
+    "width": 400,
+    "height": 200,
+    "color": 5
+  }
+}
+```
+
+**Colores recomendados:**
+- 3 (rojo): Secciones criticas / Reinicio
+- 5 (amarillo): Agentes AI (lo mas importante)
+- 6 (verde): Salida al canal (envio)
+- 7 (azul): Procesamiento de datos
+- 4 (morado): Notas generales / explicacion
+
+## Los templates de referencia se nutren con cada cliente (CRITICO)
+
+Cada vez que trabajamos con un cliente nuevo y descubrimos un patron nuevo, debe extraerse y agregarse a los templates de referencia anonimizados en `knowledge/workflow-variants-templates/` y/o `knowledge/workflows-reference/`.
+
+**Proceso:**
+1. Terminar el cliente (pipeline completo)
+2. Identificar que fue NUEVO vs los templates existentes
+3. Si es un patron reutilizable:
+   - Anonimizar (quitar info del cliente especifico)
+   - Agregar a los templates
+   - Documentar en `knowledge/08+_LECCIONES_*.md`
+4. Commit + push al repo publico
+
+**Ejemplos de patrones que se pueden generalizar:**
+- Nuevo post-processing (ej: integracion con Slack, Discord nuevos)
+- Nuevo canal (ej: Facebook Messenger)
+- Nueva estructura de routing (ej: sub-routers)
+- Nuevos tipos de agentes especializados
+
 ## Los prompts del cliente son la FUENTE DE VERDAD (CRITICO)
 
 Los archivos en `clients/{cliente}/prompts/` son la UNICA fuente de verdad de los prompts. Cualquier JSON de workflow (produccion, TEST, TELEGRAM, cualquier variante) DEBE:
