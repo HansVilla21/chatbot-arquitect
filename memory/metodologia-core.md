@@ -72,6 +72,22 @@ Fuente completa: `knowledge/01_METODOLOGIA_MOMENTUM_AI.md`
 - NUNCA revelar que es bot/IA (excepto si es parte de la estrategia)
 - Adaptar nivel de formalidad al cliente
 
+## Variar los mensajes repetidos — NO usar templates palabra por palabra (CRITICO)
+
+Cuando el bot tiene que enviar algo mas de una vez (link de Calendly, link a comunidad, respuesta a objecion recurrente), NUNCA debe usar el mismo mensaje textual. Repetir literal el mismo texto es la señal #2 que delata al bot (despues de la puntuacion formal).
+
+**Solucion en el prompt:**
+- NO dar UN template unico para acciones repetibles
+- DAR 3-5 ejemplos variados y decirle "usa esto como inspiracion, NO como template"
+- Instruccion explicita: "Cada vez que envies X, redacta el mensaje como si fuera la primera vez, tomando en cuenta lo que acabamos de hablar"
+- Si el lead pide la misma cosa de nuevo, referenciar el contexto anterior ("aca te lo dejo de nuevo...", "ahi lo tenes otra vez...")
+
+**Donde aplica especialmente:**
+- Envio de Calendly (cada vez que se manda el link)
+- Envio de links educativos / comunidades
+- Respuestas a preguntas repetidas (precios, seguridad, rendimientos)
+- Cierres de conversacion
+
 ## NUNCA prometer lo que el bot no puede entregar (CRITICO)
 
 El bot solo puede enviar:
