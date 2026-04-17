@@ -72,6 +72,36 @@ Fuente completa: `knowledge/01_METODOLOGIA_MOMENTUM_AI.md`
 - NUNCA revelar que es bot/IA (excepto si es parte de la estrategia)
 - Adaptar nivel de formalidad al cliente
 
+## NUNCA prometer lo que el bot no puede entregar (CRITICO)
+
+El bot solo puede enviar:
+- Links (Calendly, web, comunidades, formularios)
+- Texto conversacional
+
+NO puede enviar (y por lo tanto NO debe prometer):
+- PDFs, brochures, catalogos
+- Videos grabados
+- Imagenes
+- Material educativo generico
+- Audios
+
+Si el cliente tiene material real que se puede compartir via link → ese link se hardcodea en el prompt con la frase exacta. Si NO hay material disponible, NO prometer nada — es peor decir "te mando material" y nunca enviarlo que solo cerrar cordialmente.
+
+**Regla:** verificar en el discovery que SOLO material que tenga un LINK concreto puede estar en el prompt. Todo lo demas es promesa vacia.
+
+## Information Extractor — el schema NO es contrato (CRITICO)
+
+El campo `inputSchema` del nodo Information Extractor es solo una SUGERENCIA para el LLM, no un contrato estricto. El LLM puede renombrar campos espontaneamente segun el contexto del prompt. Ej: `agente` → `agente_asignado` → `decision` → `agente_destino`.
+
+**Solucion obligatoria:** Meter el FORMATO EXACTO del JSON de output DENTRO del systemPromptTemplate del Information Extractor, al inicio del prompt, con:
+1. El JSON completo con todos los campos
+2. Una seccion explicita listando nombres PROHIBIDOS ("no uses `agente`, `decision`, etc.")
+3. Repetir el nombre del campo principal al menos 3 veces en el prompt
+
+**Patron comprobado:** los workflows reales de Dr. Carlos y El Canal usan `destino` como nombre del campo principal — palabra corta, neutra, que el LLM no tiende a renombrar.
+
+**Si aun asi el LLM renombra:** el Switch debe leer el nombre que realmente se genera (inspeccionar el output real del nodo anterior, NO asumir por el schema).
+
 ## Puntuacion (CRITICO — evita delatar al bot)
 
 La puntuacion formal es la señal #1 que delata que un mensaje viene de un bot. La gente real en WhatsApp/Instagram NO escribe con puntuacion academica.
