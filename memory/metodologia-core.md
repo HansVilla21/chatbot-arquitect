@@ -105,6 +105,31 @@ Si el cliente tiene material real que se puede compartir via link → ese link s
 
 **Regla:** verificar en el discovery que SOLO material que tenga un LINK concreto puede estar en el prompt. Todo lo demas es promesa vacia.
 
+## Expresiones .item vs .first() — cuando usar cual (CRITICO)
+
+En n8n, las expresiones como `{{ $('NombreNodo').item.json.campo }}` dependen del "pairedItem chain" — un sistema que mapea cada item output a su item input correspondiente.
+
+**Problema:** Los nodos Code, Basic LLM Chain, Information Extractor, Split Out, Loop Over Items, y otros nodos que generan items nuevos ROMPEN el pairedItem chain. Cualquier expresion `.item` DESPUES de ellos falla con:
+
+> "Paired item data for item from node 'X' is unavailable. Ensure 'X' is providing the required output."
+
+**Regla:** En workflows que tienen Code Nodes, AI Agents, Formateadores, o Loops:
+- Usar SIEMPRE `.first()` en vez de `.item` para referenciar nodos anteriores
+- Ejemplo: `{{ $('ID y Mensaje').first().json.ID }}` ✅
+- NO usar: `{{ $('ID y Mensaje').item.json.ID }}` ❌
+
+**Excepciones (donde `.item` funciona):**
+- Expresiones ANTES de un Code node o AI Agent (el pairedItem no se ha roto aun)
+- Cuando solo hay un item fluyendo (caso comun, pero fragil)
+
+**Patron seguro:** usar `.first()` por default. Funciona igual que `.item` cuando hay un solo item, y no falla cuando el pairedItem se rompe.
+
+**Donde aplicar especial atencion:**
+- Nodos despues del Formateador (Basic LLM Chain) + Loop
+- Nodos despues del Code node que formatea historial
+- Nodos despues del AI Agent
+- Telegram Send Chunk, ManyChat HTTP Request, etc.
+
 ## Telegram Send Message — desactivar atribucion de n8n (CRITICO)
 
 Cuando se usa el nodo `n8n-nodes-base.telegram` con operacion "Send Message" (tanto para envio directo como dentro de loops del formateador), SIEMPRE agregar en los parameters:
