@@ -21,6 +21,23 @@ Lecciones aprendidas de proyectos reales. Se agrega aqui cada vez que se descubr
 - Links de propiedades = experiencia positiva si se presentan bien
 - El bot debe EDUCAR el proceso (usuarios no saben como funciona el sitio web)
 
+## Debugging del Switch tras Information Extractor — Abril 2026
+
+**Regla critica:** Cuando el Switch no rutea correctamente despues de un Information Extractor, NUNCA asumir el nombre del campo segun el schema que definiste. El LLM no siempre respeta los nombres de campos del schema — los puede acortar o ajustar segun el contexto del prompt.
+
+**Como diagnosticar:**
+1. Correr el Switch en modo step-by-step y mirar el INPUT real que recibe
+2. Expandir el JSON del Information Extractor y ver exactamente como se llaman los campos generados
+3. Ajustar el Switch Y el schema para que usen el mismo nombre que el LLM realmente genera
+
+**Ejemplo real (Level):**
+- Schema definido: `"agente_destino": "LEO_PRINCIPAL"`
+- LLM genero: `"agente": "LEO_PRINCIPAL"` (acorto el nombre)
+- Switch buscaba `$json.output.agente_destino` → nunca matcheaba
+- Fix: renombrar schema a `"agente"` y Switch a `$json.output.agente`
+
+**Patron preventivo:** usar nombres de campos CORTOS y naturales en el schema (como los workflows reales de Dr. Carlos y El Canal usan `destino`). Los LLM tienden a preferir nombres simples.
+
 ## Del Template Base (chatbot-manychat.json) — Abril 2026
 
 - **Message batching con Redis** — Push al llegar, wait 1 min, get all, verificar si es ultimo. Resuelve el problema de usuarios que envian una idea en 3 mensajes separados.
