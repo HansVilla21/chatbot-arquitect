@@ -105,6 +105,26 @@ Si el cliente tiene material real que se puede compartir via link → ese link s
 
 **Regla:** verificar en el discovery que SOLO material que tenga un LINK concreto puede estar en el prompt. Todo lo demas es promesa vacia.
 
+## Los prompts del cliente son la FUENTE DE VERDAD (CRITICO)
+
+Los archivos en `clients/{cliente}/prompts/` son la UNICA fuente de verdad de los prompts. Cualquier JSON de workflow (produccion, TEST, TELEGRAM, cualquier variante) DEBE:
+
+1. **Leer los prompts literalmente** de `clients/{cliente}/prompts/*.md`
+2. **Copiar el contenido EXACTO** (byte-por-byte) al campo correspondiente del nodo
+3. **NUNCA modificar, "limpiar", reescribir, o "mejorar" los prompts** al generar un JSON
+
+**Reglas inviolables:**
+- NO cambiar `{nombre}` a `Nombre` (los placeholders single-brace son validos en n8n)
+- NO cambiar emojis `❌ ✅` a texto `NO/SI` (los emojis Unicode son validos)
+- NO acortar, expandir, o reorganizar los prompts
+- NO inventar prompts nuevos cuando ya existen en el cliente
+
+**Si los prompts necesitan cambio:**
+Se edita el archivo `.md` del cliente primero, y DESPUES se re-sincroniza a todos los JSONs. Nunca al reves.
+
+**Verificacion obligatoria al crear un nuevo JSON:**
+Antes de reportar "JSON creado", calcular hash MD5 de cada prompt en el JSON nuevo y compararlo contra hash MD5 del archivo `.md` fuente. Si no coinciden, el JSON esta mal.
+
 ## Information Extractor — PROHIBIDO usar llaves en el systemPromptTemplate
 
 **Regla critica:** El campo `systemPromptTemplate` del Information Extractor (y de cualquier nodo que interpole expresiones de n8n) NO puede contener los simbolos `{` ni `}` sueltos. n8n los interpreta como sintaxis de expresion `{{ ... }}` y rompe el nodo.
