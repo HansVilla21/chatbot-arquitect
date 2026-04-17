@@ -11,7 +11,7 @@ Antes de generar:
 - **Lee** `clients/{cliente}/architecture.md` — si no existe, sugerir `/momentum-architect` primero
 - **Lee** `clients/{cliente}/discovery.json` — datos del discovery
 - **Lee** `memory/metodologia-core.md` — reglas de prompting
-- **Consulta** los prompts reales en `workflows/prompts-referencia/` como referencia de calidad
+- **Consulta** los prompts reales en `knowledge/workflows-reference/` como referencia de calidad
 - **Consulta** los templates en `assets/` para la estructura base
 
 ## Principios Core
@@ -55,7 +55,7 @@ Leer `clients/{cliente}/architecture.md` y listar que componentes necesita este 
 Este es el nodo mas critico. Si rutea mal, todo falla.
 
 1. Leer `assets/template-classifier-llm.md`
-2. Consultar prompts reales similares en `workflows/prompts-referencia/`:
+2. Consultar prompts reales similares en `knowledge/workflows-reference/`:
    - Si es real estate → ver `el-canal/clasificador-router.md`
    - Si es clinica/salud → ver `dr-carlos/router-classifier.md`
    - Si es villas/alquiler → ver `information-extractor-router.md` (Jaco)
@@ -70,7 +70,7 @@ Este es el nodo mas critico. Si rutea mal, todo falla.
 ### Paso 3: Generar el Agente Principal
 
 1. Leer `assets/template-principal.md`
-2. Consultar agente real similar en `workflows/prompts-referencia/`
+2. Consultar agente real similar en `knowledge/workflows-reference/`
 3. Rellenar TODAS las variables con datos reales del discovery
 4. Incluir: identidad, objetivo, info critica, flujo conversacional, FAQs, reglas
 5. Si tiene tools (RAG, Google Sheets) → incluir instrucciones de uso

@@ -1,23 +1,26 @@
+# ============================================
+# Chatbot Arquitect — .gitignore
+# ============================================
+# Politica: el proyecto publico incluye TODO lo que sirve como template,
+# conocimiento, referencias y entrenamiento. Lo UNICO excluido son los
+# datos reales de clientes (informacion sensible).
+
 # Secretos — NUNCA en git
 .env
 .env.*
 !.env.example
 
 # Data de clientes — NUNCA en git (informacion sensible)
-# El proyecto es publico, pero cada cliente tiene su propia carpeta local
+# Cada cliente tiene su propia carpeta local con sus docs, prompts, etc.
+# Solo el template de estructura se sube al repo publico.
 clients/*
 !clients/.template/
 !clients/.template/**
 !clients/.gitkeep
 
-# Workflows reales con datos de clientes (mantener solo template y analisis)
-workflows/chatbot-manychat.json
-workflows/chatbot-manychat-input-example.json
-workflows/Chatbot-DR-CARLOS.json
-workflows/Chatbot-JIMENA-MATEO.json
-
 # Claude Code
 CLAUDE.local.md
+.claude/settings.local.json
 
 # Sistema
 .DS_Store

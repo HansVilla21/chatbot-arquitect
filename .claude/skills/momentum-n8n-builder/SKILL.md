@@ -11,7 +11,7 @@ description: Genera la configuracion especifica de los nodos del workflow n8n pa
 - **Lee** `clients/{cliente}/prompts/` — prompts generados
 - **Consulta** `references/workflow-patterns.md` — estructura del template base
 - **Consulta** `references/code-snippets.md` — snippets reutilizables
-- **Consulta** `workflows/chatbot-manychat-analysis.md` — analisis del template real
+- **Consulta** `knowledge/workflows-reference/template-base/analysis.md` — analisis del template real
 
 ## Principio Fundamental
 

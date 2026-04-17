@@ -170,7 +170,7 @@ Para cada componente de la arquitectura, generar el prompt usando los templates 
 
 ### Para cada prompt:
 - Basarse en los templates de `.claude/skills/momentum-prompt-gen/assets/`
-- Consultar prompts reales similares en `workflows/prompts-referencia/`
+- Consultar prompts reales similares en `knowledge/workflows-reference/`
 - Rellenar con datos REALES del discovery.json — cero placeholders
 - Contar caracteres y verificar que esta dentro del limite
 - Verificar formato WhatsApp (sin bold, max 3-4 lineas, 1 pregunta)

@@ -13,7 +13,7 @@ Antes de diseñar:
 - **Lee** `memory/client-patterns.md` — patrones de los 7 clientes reales
 - **Consulta** `references/stack-matrix.md` — matriz de stack por tipo de negocio
 - **Consulta** `references/architecture-patterns.md` — patrones comprobados
-- **Consulta** los workflows reales en `workflows/*-analysis.md` como referencia
+- **Consulta** los workflows reales en `knowledge/workflows-reference/*/analysis.md` como referencia
 
 ## Principios Core
 

@@ -175,11 +175,15 @@ Chatbot Arquitect/
 │       │   └── workflow-config.md
 │       └── entrega.md           # Documento de entrega
 │
-├── knowledge/                   # Base de conocimiento (7 docs Momentum AI)
-├── workflows/                   # Template JSON + workflows reales analizados
-│   ├── chatbot-manychat.json    # Template base
-│   ├── prompts-referencia/      # Prompts extraidos de workflows reales
-│   └── *-analysis.md            # Analisis de cada workflow
+├── knowledge/                   # Base de conocimiento + templates publicos
+│   ├── 00_*.md ... 08_*.md     # Metodologia, casos, patrones, lecciones
+│   ├── workflows-reference/     # Workflows reales como referencia
+│   │   ├── template-base/       # Template original (Jaco) con prompts
+│   │   ├── dr-carlos/           # Ejemplo clinica medica (2 agentes)
+│   │   └── el-canal/            # Ejemplo real estate (3 agentes)
+│   └── workflow-variants-templates/  # Templates anonimizados
+│       ├── TEST-template.json   # Para chat interno de n8n
+│       └── TELEGRAM-template.json  # Para bot de Telegram
 │
 ├── .claude/
 │   ├── skills/                  # Skills del pipeline
@@ -194,7 +198,7 @@ Chatbot Arquitect/
 - **Carpeta por cliente:** `clients/{nombre-en-kebab-case}/`
 - **Prompts copiables:** Cada prompt listo para pegar en n8n, sin placeholders
 - **Conteo de caracteres:** SIEMPRE reportar chars de cada prompt
-- **Prompts de referencia:** `workflows/prompts-referencia/` contiene prompts reales de produccion
+- **Prompts de referencia:** `knowledge/workflows-reference/` contiene workflows reales + prompts de produccion como templates
 
 ## Reglas del Proyecto
 
