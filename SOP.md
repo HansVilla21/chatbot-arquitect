@@ -210,10 +210,29 @@ Formateador: gpt-4o-mini
 **Outputs:**
 - `clients/{cliente}/workflow/chatbot-{cliente}.json` — JSON importable en n8n (produccion)
 - `clients/{cliente}/workflow/chatbot-{cliente}-TEST.json` — Version simplificada para chat interno de n8n
+- `clients/{cliente}/workflow/chatbot-{cliente}-TELEGRAM.json` — Version Telegram para pruebas con cliente
 - `clients/{cliente}/workflow/workflow-config.md` — Guia de configuracion + checklist
 
-### Version TEST (para probar con chat interno de n8n):
-Version slim del workflow (~12 nodos) que usa Chat Trigger en vez de Webhook. Sin Redis, sin Airtable, sin ManyChat, sin formateador. Mismos prompts y logica de routing. Para probar la conversacion antes de conectar todo.
+### Las 3 versiones del workflow:
+
+**Produccion (~65 nodos):** ManyChat + Airtable + Redis batching + formateador + todo el post-processing. Deploy final.
+
+**TEST (~15 nodos):** Chat Trigger de n8n, sin Airtable/Redis/ManyChat. Para pruebas rapidas del equipo tecnico.
+
+**TELEGRAM (~30 nodos):** Telegram Trigger + Telegram Send + REINICIAR + formateador con loop. Para pruebas con cliente/lead real.
+
+**Generacion:** Usar `/momentum-workflow-variants` para crear las versiones TEST y TELEGRAM a partir del JSON de produccion. Los prompts deben ser byte-por-byte identicos en las 3 versiones (verificar con hash MD5).
+
+### Verificaciones obligatorias antes de entregar cualquier JSON:
+
+1. **Prompts sincronizados** — hash MD5 de cada prompt debe coincidir entre las 3 versiones
+2. **Cero llaves en systemPromptTemplate** del Information Extractor (`{` y `}` rompen n8n)
+3. **Expresiones con `.first()`** despues de Code/Agent/Loop (no `.item`)
+4. **Switch lee campo correcto** (`$json.output.destino`, verificado contra el output real del IE)
+5. **Postgres delete usa `operation: "deleteTable"` + `deleteCommand: "delete"`** (no `"delete"` solo)
+6. **Telegram Send con `appendAttribution: false`** (si aplica)
+7. **Prompt principal sigue reglas:** cierre en 2 pasos, puntuacion informal, variaciones, no prometer material inexistente
+8. **Router prompt sigue reglas:** formato YAML embebido, nombres prohibidos listados, PREGUNTA vs OBJECION vs CORRECCION
 
 ### Si el MCP de n8n esta conectado:
 Se puede deployar el workflow directo a la instancia con `n8n_create_workflow`, modificar nodos con `n8n_update_partial_workflow`, y testear con `n8n_test_workflow`.

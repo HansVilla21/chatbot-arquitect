@@ -82,6 +82,7 @@ Meter en `clients/{cliente}/docs/` todo lo que el cliente me pasa:
 | `/momentum-architect` | Diseña arquitectura (que cambia en el template) |
 | `/momentum-prompt-gen` | Genera prompts para cada componente del chatbot |
 | `/momentum-n8n-builder` | Guia de configuracion nodo-por-nodo del template |
+| `/momentum-workflow-variants` | Genera versiones TEST y TELEGRAM desde produccion |
 | `/momentum-delivery` | Documento de entrega sin jerga tecnica |
 | `/momentum-prompt-optimizer` | Optimiza prompts existentes con cambios quirurgicos |
 | `/momentum-pipeline` | Ejecuta todo el pipeline con checkpoints |
