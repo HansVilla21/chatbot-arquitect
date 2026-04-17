@@ -105,6 +105,37 @@ Si el cliente tiene material real que se puede compartir via link → ese link s
 
 **Regla:** verificar en el discovery que SOLO material que tenga un LINK concreto puede estar en el prompt. Todo lo demas es promesa vacia.
 
+## Telegram Send Message — desactivar atribucion de n8n (CRITICO)
+
+Cuando se usa el nodo `n8n-nodes-base.telegram` con operacion "Send Message" (tanto para envio directo como dentro de loops del formateador), SIEMPRE agregar en los parameters:
+
+```json
+"additionalFields": {
+  "appendAttribution": false
+}
+```
+
+Sin esto, n8n agrega automaticamente al final de cada mensaje "Sent via n8n.io" o similar, lo que:
+1. Delata al bot inmediatamente
+2. Se ve feo en el chat
+3. Rompe la experiencia del usuario
+
+**Configuracion de nodo Telegram Send completa (patron correcto):**
+```json
+{
+  "type": "n8n-nodes-base.telegram",
+  "typeVersion": 1.2,
+  "parameters": {
+    "chatId": "={{ $('ID y Mensaje').item.json.ID }}",
+    "text": "={{ $json.output }}",
+    "additionalFields": {
+      "appendAttribution": false
+    }
+  },
+  "credentials": { "telegramApi": { "id": "...", "name": "..." } }
+}
+```
+
 ## Los prompts del cliente son la FUENTE DE VERDAD (CRITICO)
 
 Los archivos en `clients/{cliente}/prompts/` son la UNICA fuente de verdad de los prompts. Cualquier JSON de workflow (produccion, TEST, TELEGRAM, cualquier variante) DEBE:
