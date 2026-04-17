@@ -105,6 +105,33 @@ Si el cliente tiene material real que se puede compartir via link → ese link s
 
 **Regla:** verificar en el discovery que SOLO material que tenga un LINK concreto puede estar en el prompt. Todo lo demas es promesa vacia.
 
+## Postgres node — delete rows con configuracion correcta (CRITICO)
+
+Para borrar filas en Postgres (nodo `n8n-nodes-base.postgres` v2.6), la configuracion correcta NO es `operation: "delete"`. Eso da error:
+> "The value 'delete' is not supported!"
+
+**Configuracion correcta:**
+```json
+{
+  "operation": "deleteTable",
+  "deleteCommand": "delete",
+  "schema": { "__rl": true, "value": "public", "mode": "list" },
+  "table": { "__rl": true, "value": "n8n_chat_histories", "mode": "list" },
+  "where": {
+    "values": [{ "column": "session_id", "value": "..." }]
+  }
+}
+```
+
+**Claves:**
+- `operation`: `"deleteTable"` (NO `"delete"`)
+- `deleteCommand`: `"delete"` (opciones: `"delete"`, `"truncate"`, `"drop"`)
+- `where.values`: condiciones (column + value) para filtrar que filas borrar
+
+Sin el campo `deleteCommand`, el nodo no sabe si hacer DELETE, TRUNCATE o DROP.
+
+**Donde aplica:** Cualquier flujo de reinicio (REINICIAR), limpieza de historial, o borrado condicional de filas en Postgres.
+
 ## Expresiones .item vs .first() — cuando usar cual (CRITICO)
 
 En n8n, las expresiones como `{{ $('NombreNodo').item.json.campo }}` dependen del "pairedItem chain" — un sistema que mapea cada item output a su item input correspondiente.
