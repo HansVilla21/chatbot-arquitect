@@ -89,6 +89,24 @@ Si el cliente tiene material real que se puede compartir via link → ese link s
 
 **Regla:** verificar en el discovery que SOLO material que tenga un LINK concreto puede estar en el prompt. Todo lo demas es promesa vacia.
 
+## Information Extractor — PROHIBIDO usar llaves en el systemPromptTemplate
+
+**Regla critica:** El campo `systemPromptTemplate` del Information Extractor (y de cualquier nodo que interpole expresiones de n8n) NO puede contener los simbolos `{` ni `}` sueltos. n8n los interpreta como sintaxis de expresion `{{ ... }}` y rompe el nodo.
+
+**Solucion:** describir el formato del JSON de output usando notacion YAML (sin llaves) dentro del prompt. Aclarar explicitamente:
+- "El output debe ser JSON, NO YAML"
+- "YAML es solo para visualizar la estructura"
+- "Devuelve el equivalente JSON con los mismos nombres de campos"
+
+**Donde SI se pueden usar llaves:**
+- Campo `inputSchema` del Information Extractor — es texto plano que no se interpola
+- Campo `text` del Information Extractor — solo dentro de expresiones validas `{{ }}`
+
+**Donde NO se pueden usar llaves:**
+- systemPromptTemplate (del Information Extractor)
+- systemMessage (de AI Agent)
+- Cualquier campo que n8n marque como "expression" con el boton `fx`
+
 ## Information Extractor — el schema NO es contrato (CRITICO)
 
 El campo `inputSchema` del nodo Information Extractor es solo una SUGERENCIA para el LLM, no un contrato estricto. El LLM puede renombrar campos espontaneamente segun el contexto del prompt. Ej: `agente` → `agente_asignado` → `decision` → `agente_destino`.
